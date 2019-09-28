@@ -11,81 +11,81 @@ func assertBitsEqual(t *testing.T, got, want bool) {
 }
 
 func TestCPU_Z(t *testing.T) {
-	t.Run("z is unset", func(t *testing.T) {
-		cpu := &CPU{}
+	tests := []struct {
+		name string
+		want bool
+	}{
+		{"z is unset", false},
+		{"z is set", true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cpu := &CPU{}
 
-		cpu.SetZ(false)
-		got := cpu.Z()
+			cpu.SetZ(tt.want)
+			got := cpu.Z()
 
-		assertBitsEqual(t, got, false)
-	})
-
-	t.Run("z is set", func(t *testing.T) {
-		cpu := &CPU{}
-
-		cpu.SetZ(true)
-		got := cpu.Z()
-
-		assertBitsEqual(t, got, true)
-	})
+			assertBitsEqual(t, got, tt.want)
+		})
+	}
 }
 
 func TestCPU_N(t *testing.T) {
-	t.Run("n is unset", func(t *testing.T) {
-		cpu := &CPU{}
+	tests := []struct {
+		name string
+		want bool
+	}{
+		{"n is unset", false},
+		{"n is set", true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cpu := &CPU{}
 
-		cpu.SetN(false)
-		got := cpu.N()
+			cpu.SetN(tt.want)
+			got := cpu.N()
 
-		assertBitsEqual(t, got, false)
-	})
-
-	t.Run("n is set", func(t *testing.T) {
-		cpu := &CPU{}
-
-		cpu.SetN(true)
-		got := cpu.N()
-
-		assertBitsEqual(t, got, true)
-	})
+			assertBitsEqual(t, got, tt.want)
+		})
+	}
 }
 
 func TestCPU_H(t *testing.T) {
-	t.Run("h is unset", func(t *testing.T) {
-		cpu := &CPU{}
+	tests := []struct {
+		name string
+		want bool
+	}{
+		{"h is unset", false},
+		{"h is set", true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cpu := &CPU{}
 
-		cpu.SetH(false)
-		got := cpu.H()
+			cpu.SetH(tt.want)
+			got := cpu.H()
 
-		assertBitsEqual(t, got, false)
-	})
-
-	t.Run("h is set", func(t *testing.T) {
-		cpu := &CPU{}
-
-		cpu.SetH(true)
-		got := cpu.H()
-
-		assertBitsEqual(t, got, true)
-	})
+			assertBitsEqual(t, got, tt.want)
+		})
+	}
 }
 
 func TestCPU_C(t *testing.T) {
-	t.Run("c is unset", func(t *testing.T) {
-		cpu := &CPU{}
+	tests := []struct {
+		name string
+		want bool
+	}{
+		{"c is unset", false},
+		{"c is set", true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cpu := &CPU{}
 
-		cpu.SetC(false)
-		got := cpu.C()
+			cpu.SetC(tt.want)
+			got := cpu.C()
 
-		assertBitsEqual(t, got, false)
-	})
-
-	t.Run("c is set", func(t *testing.T) {
-		cpu := &CPU{}
-
-		cpu.SetC(true)
-		got := cpu.C()
-
-		assertBitsEqual(t, got, true)
-	})
+			assertBitsEqual(t, got, tt.want)
+		})
+	}
 }

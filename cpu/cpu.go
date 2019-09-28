@@ -1,3 +1,4 @@
+// Package cpu implements a complete GameBoy CPU.
 package cpu
 
 // CPU represents a GameBoy CPU.
@@ -6,8 +7,8 @@ type CPU struct {
 	sp, pc              uint16
 }
 
-// Init initializes the value of the CPU registers
-// to the value set on boot by the GameBoy.
+// Init initializes the CPU registers
+// to the values set on boot by the GameBoy.
 func (c *CPU) Init() {
 	c.pc = 0x100
 	c.sp = 0xFFFE
