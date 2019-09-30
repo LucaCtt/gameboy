@@ -2,12 +2,65 @@ package cpu
 
 import "testing"
 
+func assertBytesEqual(t *testing.T, got, want byte) {
+	t.Helper()
+	if got != want {
+		t.Errorf("got %v, want %v", got, want)
+	}
+}
+
 func assertBitsEqual(t *testing.T, got, want bool) {
 	t.Helper()
-
 	if got != want {
 		t.Errorf("got %t, want %t", got, want)
 	}
+}
+
+func TestRegister_Lo(t *testing.T) {
+	r := register{0x0001}
+	got := r.Lo()
+
+	assertBytesEqual(t, got, byte(0x01))
+}
+
+func TestRegister_Hi(t *testing.T) {
+	r := register{0x0100}
+	got := r.Hi()
+
+	assertBytesEqual(t, got, byte(0x01))
+}
+
+func TestRegister_HiLo(t *testing.T) {
+	r := register{0x0100}
+	got := r.HiLo()
+
+	assertBytesEqual(t, byte(got), byte(0x00))
+	assertBytesEqual(t, byte(got>>8), byte(0x01))
+}
+
+func TestRegister_SetLo(t *testing.T) {
+	r := register{0x0000}
+	r.SetLo(byte(0x01))
+	got := r.Lo()
+
+	assertBytesEqual(t, got, byte(0x01))
+}
+
+func TestRegister_SetHi(t *testing.T) {
+	r := register{0x0000}
+	r.SetHi(byte(0x01))
+	got := r.Hi()
+
+	assertBytesEqual(t, got, byte(0x01))
+}
+
+func TestRegister_Set(t *testing.T) {
+	r := register{0x0000}
+	r.Set(0x0101)
+	got := r.HiLo()
+
+	assertBytesEqual(t, byte(got), byte(0x01))
+	assertBytesEqual(t, byte(got>>8), byte(0x01))
 }
 
 func TestCPU_Z(t *testing.T) {
