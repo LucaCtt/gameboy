@@ -1,12 +1,26 @@
 // Package cpu implements a complete GameBoy CPU.
 package cpu
 
+// Registers values set on boot.
+const (
+	defaultAF = 0x01B0
+	defaultBC = 0x0013
+	defaultDE = 0x00D8
+	defaultHL = 0x014D
+	defaultSP = 0xFFFE
+	defaultPC = 0x0100
+)
+
 // Register represents a CPU register.
 // As the registers can be used singularly or
 // combined to form a 16 bit pseudo-register,
 // a common 16 bit representation is used.
 type register struct {
 	r uint16
+
+	// Used only for the F registry, to prevent
+	// updating the lower 4 bits.
+	mask uint16
 }
 
 // Lo returns the lower byte of the register.
@@ -32,11 +46,17 @@ func (r *register) SetHi(value byte) {
 // SetLo sets the value of the lower byte of the register.
 func (r *register) SetLo(value byte) {
 	r.r = uint16(value) | (r.r & 0xFF00)
+	if r.mask != 0 {
+		r.r &= r.mask
+	}
 }
 
 // Set sets the full value of the register.
 func (r *register) Set(value uint16) {
 	r.r = value
+	if r.mask != 0 {
+		r.r &= r.mask
+	}
 }
 
 // CPU represents a GameBoy CPU.
@@ -44,22 +64,20 @@ type CPU struct {
 	AF, BC, DE, HL, SP, PC register
 }
 
-// Init initializes the CPU registers
-// to the values set on boot by the GameBoy.
-func (c *CPU) Init() {
-	c.PC.Set(0x100)
-	c.SP.Set(0xFFFE)
-}
+// New creates a new CPU where the registers
+// are initialized to the values
+// set on boot by the GameBoy.
+func New() *CPU {
+	cpu := &CPU{AF: register{mask: 0xFFF0}}
 
-// setFlag sets the value of the bit in the given position
-// in the flag register to the given value.
-func (c *CPU) setFlag(p int, b bool) {
-	var value uint8
-	if b {
-		value = 1
-	}
+	cpu.AF.Set(defaultAF)
+	cpu.BC.Set(defaultBC)
+	cpu.DE.Set(defaultDE)
+	cpu.HL.Set(defaultHL)
+	cpu.SP.Set(defaultSP)
+	cpu.PC.Set(defaultPC)
 
-	c.AF.SetLo(c.AF.Lo() | value<<p)
+	return cpu
 }
 
 // Z returns true if the zero flag bit is set.
@@ -100,4 +118,15 @@ func (c *CPU) SetH(value bool) {
 // SetC sets the value of the carry flag.
 func (c *CPU) SetC(value bool) {
 	c.setFlag(4, value)
+}
+
+// setFlag sets the value of the bit in the given position
+// in the flag register to the given value.
+func (c *CPU) setFlag(p int, b bool) {
+	var value uint8
+	if b {
+		value = 1
+	}
+
+	c.AF.SetLo(c.AF.Lo() | value<<p)
 }
