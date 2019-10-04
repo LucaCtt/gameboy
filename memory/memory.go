@@ -54,8 +54,6 @@ func (m *Memory) SetByte(addr uint16, value byte) error {
 
 // AddSpace adds a memory bank to the memory, from which bytes
 // can be read and written to.
-// Will panic if the space addresses overlap with those of another space
-// in the memory.
 func (m *Memory) AddSpace(space AddressSpace) {
 	m.spaces = append(m.spaces, space)
 }
