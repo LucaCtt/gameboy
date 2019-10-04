@@ -3,21 +3,9 @@ package memory
 import (
 	"errors"
 	"testing"
+
+	"github.com/lucactt/gameboy/util"
 )
-
-func assertErr(t *testing.T, got error, want bool) {
-	t.Helper()
-	if (got != nil) != want {
-		t.Errorf("got error %q, want %t", got, want)
-	}
-}
-
-func assertByte(t *testing.T, got, want byte) {
-	t.Helper()
-	if got != want {
-		t.Errorf("got %v, want %v", got, want)
-	}
-}
 
 type TestAddressSpace struct {
 	start     uint16
@@ -59,8 +47,8 @@ func TestMemory_GetByte(t *testing.T) {
 		mem.AddSpace(space)
 
 		got, err := mem.GetByte(0x0001)
-		assertErr(t, err, false)
-		assertByte(t, got, 0x11)
+		util.AssertErr(t, err, false)
+		util.AssertEqual(t, got, byte(0x11))
 	})
 
 	t.Run("addr not in space", func(t *testing.T) {
@@ -69,8 +57,8 @@ func TestMemory_GetByte(t *testing.T) {
 		mem.AddSpace(space)
 
 		got, err := mem.GetByte(0x1001)
-		assertErr(t, err, true)
-		assertByte(t, got, 0)
+		util.AssertErr(t, err, true)
+		util.AssertEqual(t, got, byte(0))
 	})
 
 	t.Run("address space error", func(t *testing.T) {
@@ -79,8 +67,8 @@ func TestMemory_GetByte(t *testing.T) {
 		mem.AddSpace(space)
 
 		got, err := mem.GetByte(0x0001)
-		assertErr(t, err, true)
-		assertByte(t, got, 0)
+		util.AssertErr(t, err, true)
+		util.AssertEqual(t, got, byte(0))
 	})
 }
 
@@ -92,8 +80,8 @@ func TestMemory_SetByte(t *testing.T) {
 
 		err := mem.SetByte(0x0001, 0x11)
 		got, err := mem.GetByte(0x0001)
-		assertErr(t, err, false)
-		assertByte(t, got, 0x11)
+		util.AssertErr(t, err, false)
+		util.AssertEqual(t, got, byte(0x11))
 	})
 
 	t.Run("addr not in space", func(t *testing.T) {
@@ -102,7 +90,7 @@ func TestMemory_SetByte(t *testing.T) {
 		mem.AddSpace(space)
 
 		err := mem.SetByte(0x1001, 0x11)
-		assertErr(t, err, true)
+		util.AssertErr(t, err, true)
 	})
 
 	t.Run("address space error", func(t *testing.T) {
@@ -111,6 +99,6 @@ func TestMemory_SetByte(t *testing.T) {
 		mem.AddSpace(space)
 
 		err := mem.SetByte(0x0001, 0x11)
-		assertErr(t, err, true)
+		util.AssertErr(t, err, true)
 	})
 }

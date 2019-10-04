@@ -1,8 +1,11 @@
+// Package memory implements concrete memory banks
+// along with a generic memory that can contain
+// a number of memory banks.
 package memory
 
 import "errors"
 
-// AddressSpace represents a generic memory area that
+// AddressSpace represents a memory area that
 // can be read and written to.
 type AddressSpace interface {
 	GetByte(addr uint16) (byte, error)
@@ -10,7 +13,7 @@ type AddressSpace interface {
 	Accepts(addr uint16) bool
 }
 
-// Memory represents the GameBoy memory.
+// Memory represents a generic memory.
 // It implements the AddressSpace interface.
 type Memory struct {
 	spaces []AddressSpace

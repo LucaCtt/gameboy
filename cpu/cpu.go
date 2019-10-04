@@ -3,12 +3,12 @@ package cpu
 
 // Registers values set on boot.
 const (
-	defaultAF = 0x01B0
-	defaultBC = 0x0013
-	defaultDE = 0x00D8
-	defaultHL = 0x014D
-	defaultSP = 0xFFFE
-	defaultPC = 0x0100
+	defaultAF uint16 = 0x01B0
+	defaultBC uint16 = 0x0013
+	defaultDE uint16 = 0x00D8
+	defaultHL uint16 = 0x014D
+	defaultSP uint16 = 0xFFFE
+	defaultPC uint16 = 0x0100
 )
 
 // Register represents a CPU register.

@@ -1,47 +1,30 @@
 package cpu
 
-import "testing"
+import (
+	"testing"
 
-func assertUint16(t *testing.T, got, want uint16) {
-	t.Helper()
-	if got != want {
-		t.Errorf("got %v, want %v", got, want)
-	}
-}
-
-func assertByte(t *testing.T, got, want byte) {
-	t.Helper()
-	if got != want {
-		t.Errorf("got %v, want %v", got, want)
-	}
-}
-
-func assertBit(t *testing.T, got, want bool) {
-	t.Helper()
-	if got != want {
-		t.Errorf("got %t, want %t", got, want)
-	}
-}
+	"github.com/lucactt/gameboy/util"
+)
 
 func TestRegister_Lo(t *testing.T) {
 	r := register{r: 0x0001}
 	got := r.Lo()
 
-	assertByte(t, got, byte(0x01))
+	util.AssertEqual(t, got, byte(0x01))
 }
 
 func TestRegister_Hi(t *testing.T) {
 	r := register{r: 0x0100}
 	got := r.Hi()
 
-	assertByte(t, got, byte(0x01))
+	util.AssertEqual(t, got, byte(0x01))
 }
 
 func TestRegister_HiLo(t *testing.T) {
 	r := register{r: 0x0100}
 	got := r.HiLo()
 
-	assertUint16(t, got, 0x0100)
+	util.AssertEqual(t, got, uint16(0x0100))
 }
 
 func TestRegister_SetLo(t *testing.T) {
@@ -50,14 +33,14 @@ func TestRegister_SetLo(t *testing.T) {
 		r.SetLo(byte(0x11))
 		got := r.Lo()
 
-		assertByte(t, got, byte(0x10))
+		util.AssertEqual(t, got, byte(0x10))
 	})
 	t.Run("normal", func(t *testing.T) {
 		r := register{r: 0x0000}
 		r.SetLo(byte(0x01))
 		got := r.Lo()
 
-		assertByte(t, got, byte(0x01))
+		util.AssertEqual(t, got, byte(0x01))
 	})
 }
 
@@ -66,7 +49,7 @@ func TestRegister_SetHi(t *testing.T) {
 	r.SetHi(byte(0x01))
 	got := r.Hi()
 
-	assertByte(t, got, byte(0x01))
+	util.AssertEqual(t, got, byte(0x01))
 }
 
 func TestRegister_Set(t *testing.T) {
@@ -75,26 +58,26 @@ func TestRegister_Set(t *testing.T) {
 		r.Set(0x0111)
 		got := r.HiLo()
 
-		assertUint16(t, got, 0x0110)
+		util.AssertEqual(t, got, uint16(0x0110))
 	})
 	t.Run("normal", func(t *testing.T) {
 		r := register{r: 0x0000}
 		r.Set(0x0101)
 		got := r.HiLo()
 
-		assertUint16(t, got, 0x0101)
+		util.AssertEqual(t, got, uint16(0x0101))
 	})
 }
 
 func TestCPU_Init(t *testing.T) {
 	cpu := New()
 
-	assertUint16(t, cpu.AF.HiLo(), defaultAF)
-	assertUint16(t, cpu.BC.HiLo(), defaultBC)
-	assertUint16(t, cpu.DE.HiLo(), defaultDE)
-	assertUint16(t, cpu.HL.HiLo(), defaultHL)
-	assertUint16(t, cpu.SP.HiLo(), defaultSP)
-	assertUint16(t, cpu.PC.HiLo(), defaultPC)
+	util.AssertEqual(t, cpu.AF.HiLo(), defaultAF)
+	util.AssertEqual(t, cpu.BC.HiLo(), defaultBC)
+	util.AssertEqual(t, cpu.DE.HiLo(), defaultDE)
+	util.AssertEqual(t, cpu.HL.HiLo(), defaultHL)
+	util.AssertEqual(t, cpu.SP.HiLo(), defaultSP)
+	util.AssertEqual(t, cpu.PC.HiLo(), defaultPC)
 }
 
 func TestCPU_Z(t *testing.T) {
@@ -112,7 +95,7 @@ func TestCPU_Z(t *testing.T) {
 			cpu.SetZ(tt.want)
 			got := cpu.Z()
 
-			assertBit(t, got, tt.want)
+			util.AssertEqual(t, got, tt.want)
 		})
 	}
 }
@@ -132,7 +115,7 @@ func TestCPU_N(t *testing.T) {
 			cpu.SetN(tt.want)
 			got := cpu.N()
 
-			assertBit(t, got, tt.want)
+			util.AssertEqual(t, got, tt.want)
 		})
 	}
 }
@@ -152,7 +135,7 @@ func TestCPU_H(t *testing.T) {
 			cpu.SetH(tt.want)
 			got := cpu.H()
 
-			assertBit(t, got, tt.want)
+			util.AssertEqual(t, got, tt.want)
 		})
 	}
 }
@@ -172,7 +155,7 @@ func TestCPU_C(t *testing.T) {
 			cpu.SetC(tt.want)
 			got := cpu.C()
 
-			assertBit(t, got, tt.want)
+			util.AssertEqual(t, got, tt.want)
 		})
 	}
 }
