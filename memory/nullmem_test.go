@@ -6,8 +6,8 @@ import (
 	"github.com/lucactt/gameboy/util"
 )
 
-func TestNullMemory_GetByte(t *testing.T) {
-	mem := &NullMemory{}
+func TestNullMem_GetByte(t *testing.T) {
+	mem := NewNullMem(0x0001, 0x1000)
 
 	got, err := mem.GetByte(0x0001)
 
@@ -15,8 +15,8 @@ func TestNullMemory_GetByte(t *testing.T) {
 	util.AssertEqual(t, got, byte(0x00))
 }
 
-func TestNullMemory_SetByte(t *testing.T) {
-	mem := &NullMemory{}
+func TestNullMem_SetByte(t *testing.T) {
+	mem := NewNullMem(0x0001, 0x1000)
 
 	err := mem.SetByte(0x0001, 0x11)
 	got, err := mem.GetByte(0x0001)
@@ -25,10 +25,25 @@ func TestNullMemory_SetByte(t *testing.T) {
 	util.AssertEqual(t, got, byte(0x00))
 }
 
-func TestNullMemory_Accepts(t *testing.T) {
-	mem := &NullMemory{Start: 0x0000, End: 0x1000}
+func TestNullMem_Accepts(t *testing.T) {
+	tests := []struct {
+		name string
+		addr uint16
+		want bool
+	}{
+		{"first byte", 0x0001, true},
+		{"last byte", 0x0FFF, true},
+		{"zero", 0x0000, false},
+		{"upper bound", 0x1000, false},
+		{"valid byte", 0x0010, true},
+	}
 
-	got := mem.Accepts(0x0001)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mem := NewNullMem(0x0001, 0x1000)
 
-	util.AssertEqual(t, got, true)
+			got := mem.Accepts(tt.addr)
+			util.AssertEqual(t, got, tt.want)
+		})
+	}
 }
