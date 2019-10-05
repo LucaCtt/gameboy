@@ -7,98 +7,103 @@ import (
 	"github.com/lucactt/gameboy/util"
 )
 
-type TestAddressSpace struct {
-	start     uint16
-	end       uint16
-	getResult byte
-	setValue  byte
-	wantErr   bool
+type TestSpace struct {
+	start    uint16
+	end      uint16
+	value    byte
+	forceErr bool
 }
 
-func (s *TestAddressSpace) GetByte(addr uint16) (byte, error) {
-	if s.wantErr {
+func (s *TestSpace) GetByte(addr uint16) (byte, error) {
+	if !s.Accepts(addr) || s.forceErr {
 		return 0, errors.New("test")
 	}
 
-	if s.setValue != 0 {
-		return s.setValue, nil
-	}
-
-	return s.getResult, nil
+	return s.value, nil
 }
 
-func (s *TestAddressSpace) SetByte(addr uint16, value byte) error {
-	if s.wantErr {
+func (s *TestSpace) SetByte(addr uint16, value byte) error {
+	if !s.Accepts(addr) || s.forceErr {
 		return errors.New("test")
 	}
 
-	s.setValue = value
+	s.value = value
 	return nil
 }
 
-func (s *TestAddressSpace) Accepts(addr uint16) bool {
+func (s *TestSpace) Accepts(addr uint16) bool {
 	return addr >= s.start && addr < s.end
 }
 
 func TestMemory_GetByte(t *testing.T) {
-	t.Run("addr in space", func(t *testing.T) {
-		space := &TestAddressSpace{start: 0x0000, end: 0x1000, getResult: 0x11}
-		mem := &Memory{}
-		mem.AddSpace(space)
+	tests := []struct {
+		name     string
+		addr     uint16
+		spaceErr bool
+		want     byte
+		wantErr  bool
+	}{
+		{"addr in memory", 0x0001, false, 0x11, false},
+		{"addr not in memory", 0x1001, false, 0, true},
+		{"space error", 0x0001, true, 0, true},
+	}
 
-		got, err := mem.GetByte(0x0001)
-		util.AssertErr(t, err, false)
-		util.AssertEqual(t, got, byte(0x11))
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			space := &TestSpace{start: 0x0000, end: 0x1000, value: tt.want, forceErr: tt.spaceErr}
+			mem := &Memory{}
+			mem.AddSpace(space)
 
-	t.Run("addr not in space", func(t *testing.T) {
-		space := &TestAddressSpace{start: 0x0000, end: 0x1000}
-		mem := &Memory{}
-		mem.AddSpace(space)
-
-		got, err := mem.GetByte(0x1001)
-		util.AssertErr(t, err, true)
-		util.AssertEqual(t, got, byte(0))
-	})
-
-	t.Run("address space error", func(t *testing.T) {
-		space := &TestAddressSpace{start: 0x0000, end: 0x1000, wantErr: true}
-		mem := &Memory{}
-		mem.AddSpace(space)
-
-		got, err := mem.GetByte(0x0001)
-		util.AssertErr(t, err, true)
-		util.AssertEqual(t, got, byte(0))
-	})
+			got, err := mem.GetByte(tt.addr)
+			util.AssertErr(t, err, tt.wantErr)
+			util.AssertEqual(t, got, tt.want)
+		})
+	}
 }
 
 func TestMemory_SetByte(t *testing.T) {
+	tests := []struct {
+		name     string
+		addr     uint16
+		spaceErr bool
+		want     byte
+		wantErr  bool
+	}{
+		{"addr in memory", 0x0001, false, 0x11, false},
+		{"addr not in memory", 0x1001, false, 0, true},
+		{"space error", 0x0001, true, 0, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			space := &TestSpace{start: 0x0000, end: 0x1000, forceErr: tt.spaceErr}
+			mem := &Memory{}
+			mem.AddSpace(space)
+
+			err := mem.SetByte(tt.addr, 0x11)
+			got, err := mem.GetByte(tt.addr)
+			util.AssertErr(t, err, tt.wantErr)
+			util.AssertEqual(t, got, tt.want)
+		})
+	}
+}
+
+func TestMemory_Accepts(t *testing.T) {
 	t.Run("addr in space", func(t *testing.T) {
-		space := &TestAddressSpace{start: 0x0000, end: 0x1000}
+		space := &TestSpace{start: 0x0000, end: 0x1000}
 		mem := &Memory{}
 		mem.AddSpace(space)
 
-		err := mem.SetByte(0x0001, 0x11)
-		got, err := mem.GetByte(0x0001)
-		util.AssertErr(t, err, false)
-		util.AssertEqual(t, got, byte(0x11))
+		got := mem.Accepts(0x0001)
+		util.AssertEqual(t, got, true)
 	})
 
 	t.Run("addr not in space", func(t *testing.T) {
-		space := &TestAddressSpace{start: 0x0000, end: 0x1000}
+		space := &TestSpace{start: 0x0000, end: 0x1000}
 		mem := &Memory{}
 		mem.AddSpace(space)
 
-		err := mem.SetByte(0x1001, 0x11)
-		util.AssertErr(t, err, true)
-	})
-
-	t.Run("address space error", func(t *testing.T) {
-		space := &TestAddressSpace{start: 0x0000, end: 0x1000, wantErr: true}
-		mem := &Memory{}
-		mem.AddSpace(space)
-
-		err := mem.SetByte(0x0001, 0x11)
-		util.AssertErr(t, err, true)
+		got := mem.Accepts(0x1001)
+		util.AssertEqual(t, got, false)
 	})
 }

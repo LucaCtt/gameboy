@@ -1,26 +1,35 @@
-// Package memory implements concrete memory banks
-// along with a generic memory that can contain
-// a number of memory banks.
+// Package memory implements concrete memory types
+// along with a generic memory struct that can contain
+// a number of memory spaces.
 package memory
 
 import "errors"
 
-// AddressSpace represents a memory area that
-// can be read and written to.
-type AddressSpace interface {
+// Space represents a memory space from which bytes
+// can be read and written.
+//
+// By convention, the start of the space is inclusive,
+// while the end is non-inclusive.
+// For example, a space between 0x0001 and 0x1000 will have
+// addresses from 0x0001 and 0x0FFF.
+//
+// Also by convention, when an address is outside the space,
+// an error will be returned.
+type Space interface {
 	GetByte(addr uint16) (byte, error)
 	SetByte(addr uint16, value byte) error
 	Accepts(addr uint16) bool
 }
 
-// Memory represents a generic memory.
-// It implements the AddressSpace interface.
+// Memory represents a generic memory that wraps many
+// memory spaces.
+// It itself implements the Space interface.
 type Memory struct {
-	spaces []AddressSpace
+	spaces []Space
 }
 
 // GetByte returns the byte at the given address.
-// If the address points to a non-existing memory area,
+// If the address points to a non-existing memory space,
 // an error will be returned.
 func (m *Memory) GetByte(addr uint16) (byte, error) {
 	for _, s := range m.spaces {
@@ -36,8 +45,8 @@ func (m *Memory) GetByte(addr uint16) (byte, error) {
 	return 0, errors.New("")
 }
 
-// SetByte sets the value of the byte at the given address.
-// If the address points to a non-existing memory area,
+// SetByte sets the byte at the given address.
+// If the address points to a non-existing memory space,
 // an error will be returned.
 func (m *Memory) SetByte(addr uint16, value byte) error {
 	for _, s := range m.spaces {
@@ -52,8 +61,18 @@ func (m *Memory) SetByte(addr uint16, value byte) error {
 	return errors.New("")
 }
 
-// AddSpace adds a memory bank to the memory, from which bytes
-// can be read and written to.
-func (m *Memory) AddSpace(space AddressSpace) {
+// Accepts checks if any of the underlying memory spaces
+// accept the given address.
+func (m *Memory) Accepts(addr uint16) bool {
+	for _, s := range m.spaces {
+		if s.Accepts(addr) {
+			return true
+		}
+	}
+	return false
+}
+
+// AddSpace adds a memory space to the memory.
+func (m *Memory) AddSpace(space Space) {
 	m.spaces = append(m.spaces, space)
 }
