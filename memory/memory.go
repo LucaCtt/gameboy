@@ -3,7 +3,7 @@
 // a number of memory spaces.
 package memory
 
-import "errors"
+import "github.com/lucactt/gameboy/util/errors"
 
 // Space represents a memory space from which bytes
 // can be read and written.
@@ -36,13 +36,13 @@ func (m *Memory) GetByte(addr uint16) (byte, error) {
 		if s.Accepts(addr) {
 			res, err := s.GetByte(addr)
 			if err != nil {
-				return 0, err
+				return 0, errors.E("get byte from memory failed", err, errors.Memory)
 			}
 			return res, nil
 		}
 	}
 
-	return 0, errors.New("")
+	return 0, errors.E("no memory space accepts addr", errors.CodeOutOfRange, errors.Memory)
 }
 
 // SetByte sets the byte at the given address.
@@ -53,12 +53,13 @@ func (m *Memory) SetByte(addr uint16, value byte) error {
 		if s.Accepts(addr) {
 			err := s.SetByte(addr, value)
 			if err != nil {
-				return err
+				return errors.E("set byte to memory failed", err, errors.Memory)
 			}
 			return nil
 		}
 	}
-	return errors.New("")
+
+	return errors.E("no memory space accepts addr", errors.CodeOutOfRange, errors.Memory)
 }
 
 // Accepts checks if any of the underlying memory spaces
