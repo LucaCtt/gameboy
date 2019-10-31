@@ -2,6 +2,8 @@
 
 This is a Nintendo GameBoy emulator written in go.
 
+Please don't sue me Nintendo-sama.
+
 ## Resources
 
 - [The ultimate GameBoy talk](https://www.youtube.com/watch?v=HyzD8pNlpwI)
