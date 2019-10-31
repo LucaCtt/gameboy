@@ -3,7 +3,7 @@ package memory
 import (
 	"testing"
 
-	"github.com/lucactt/gameboy/util"
+	"github.com/lucactt/gameboy/util/assert"
 )
 
 func TestRAM_Accepts(t *testing.T) {
@@ -24,7 +24,7 @@ func TestRAM_Accepts(t *testing.T) {
 			mem := NewRAM(0x0001, 0x1000)
 
 			got := mem.Accepts(tt.addr)
-			util.AssertEqual(t, got, tt.want)
+			assert.Equal(t, got, tt.want)
 		})
 	}
 }
@@ -35,8 +35,8 @@ func TestRAM_GetByte(t *testing.T) {
 
 		got, err := mem.GetByte(0x0001)
 
-		util.AssertErr(t, err, false)
-		util.AssertEqual(t, got, byte(0x00))
+		assert.Err(t, err, false)
+		assert.Equal(t, got, byte(0x00))
 	})
 
 	t.Run("outside space", func(t *testing.T) {
@@ -44,8 +44,8 @@ func TestRAM_GetByte(t *testing.T) {
 
 		got, err := mem.GetByte(0x1001)
 
-		util.AssertErr(t, err, true)
-		util.AssertEqual(t, got, byte(0x00))
+		assert.Err(t, err, true)
+		assert.Equal(t, got, byte(0x00))
 	})
 }
 
@@ -56,8 +56,8 @@ func TestRAM_SetByte(t *testing.T) {
 		err := mem.SetByte(0x0001, 0x11)
 		got, err := mem.GetByte(0x0001)
 
-		util.AssertErr(t, err, false)
-		util.AssertEqual(t, got, byte(0x11))
+		assert.Err(t, err, false)
+		assert.Equal(t, got, byte(0x11))
 	})
 
 	t.Run("outside space", func(t *testing.T) {
@@ -66,7 +66,7 @@ func TestRAM_SetByte(t *testing.T) {
 		err := mem.SetByte(0x1001, 0x11)
 		got, err := mem.GetByte(0x1001)
 
-		util.AssertErr(t, err, true)
-		util.AssertEqual(t, got, byte(0x00))
+		assert.Err(t, err, true)
+		assert.Equal(t, got, byte(0x00))
 	})
 }

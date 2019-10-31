@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/lucactt/gameboy/util"
+	"github.com/lucactt/gameboy/util/assert"
 )
 
 func TestError_Error(t *testing.T) {
@@ -16,7 +16,7 @@ func TestError_Error(t *testing.T) {
 	}
 	want := fmt.Sprintf("%s: %v", e.Message, e.Err)
 
-	util.AssertEqual(t, e.Error(), want)
+	assert.Equal(t, e.Error(), want)
 }
 
 func TestError_Unwrap(t *testing.T) {
@@ -28,5 +28,5 @@ func TestError_Unwrap(t *testing.T) {
 	}
 	want := e.Err
 
-	util.AssertEqual(t, e.Unwrap(), want)
+	assert.Equal(t, e.Unwrap(), want)
 }

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/lucactt/gameboy/util"
+	"github.com/lucactt/gameboy/util/assert"
 )
 
 type TestSpace struct {
@@ -55,8 +55,8 @@ func TestMemory_GetByte(t *testing.T) {
 			mem.AddSpace(space)
 
 			got, err := mem.GetByte(tt.addr)
-			util.AssertErr(t, err, tt.wantErr)
-			util.AssertEqual(t, got, tt.want)
+			assert.Err(t, err, tt.wantErr)
+			assert.Equal(t, got, tt.want)
 		})
 	}
 }
@@ -82,8 +82,8 @@ func TestMemory_SetByte(t *testing.T) {
 
 			err := mem.SetByte(tt.addr, 0x11)
 			got, err := mem.GetByte(tt.addr)
-			util.AssertErr(t, err, tt.wantErr)
-			util.AssertEqual(t, got, tt.want)
+			assert.Err(t, err, tt.wantErr)
+			assert.Equal(t, got, tt.want)
 		})
 	}
 }
@@ -95,7 +95,7 @@ func TestMemory_Accepts(t *testing.T) {
 		mem.AddSpace(space)
 
 		got := mem.Accepts(0x0001)
-		util.AssertEqual(t, got, true)
+		assert.Equal(t, got, true)
 	})
 
 	t.Run("addr not in space", func(t *testing.T) {
@@ -104,6 +104,6 @@ func TestMemory_Accepts(t *testing.T) {
 		mem.AddSpace(space)
 
 		got := mem.Accepts(0x1001)
-		util.AssertEqual(t, got, false)
+		assert.Equal(t, got, false)
 	})
 }

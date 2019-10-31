@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/lucactt/gameboy/util"
+	"github.com/lucactt/gameboy/util/assert"
 )
 
 func Test_E(t *testing.T) {
@@ -17,7 +17,7 @@ func Test_E(t *testing.T) {
 			Component: Memory,
 		}
 
-		util.AssertEqual(t, got, want)
+		assert.Equal(t, got, want)
 	})
 
 	t.Run("invalid arg", func(t *testing.T) {
