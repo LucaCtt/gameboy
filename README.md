@@ -9,6 +9,7 @@ Please don't sue me Nintendo-sama.
 - [The ultimate GameBoy talk](https://www.youtube.com/watch?v=HyzD8pNlpwI)
 - [GameBoy CPU manual](http://marc.rawer.de/Gameboy/Docs/GBCPUman.pdf)
 - [coffee-gb](https://github.com/trekawek/coffee-gb)
+- [The Cycle-Accurate Game Boy Docs](https://github.com/AntonioND/giibiiadvance/tree/master/docs)
 
 ## License
 

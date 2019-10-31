@@ -18,8 +18,15 @@ const (
 	logoEnd     uint16 = 0x0133
 	titleStart  uint16 = 0x0134
 	titleEnd    uint16 = 0x0143
-	hCheckStart uint16 = 0x0134
-	hCheckEnd   uint16 = 0x014C
+	manufStart  uint16 = 0x013F
+	manufEnd    uint16 = 0x0142
+	newLicStart uint16 = 0x0144
+	newLicEnd   uint16 = 0x0145
+	sgbFlag     uint16 = 0x0146
+	destCode    uint16 = 0x014A
+	oldLic      uint16 = 0x014B
+	romVers     uint16 = 0x014C
+	hCheck      uint16 = 0x014D
 )
 
 // Type is used to specify the MBC (if any),
@@ -57,32 +64,38 @@ func New(rom *memory.ROM) (*Cartridge, error) {
 func (c *Cartridge) Logo() [48]byte {
 	logo := [48]byte{}
 
-	for i, b := range c.getBytes(logoStart, logoEnd) {
-		logo[i] = b
-	}
-
+	copy(logo[:], c.getBytes(logoStart, logoEnd))
 	return logo
 }
 
 // Title returns the title of the game in uppercase.
 func (c *Cartridge) Title() string {
-	return ""
+	return string(c.getBytes(titleStart, titleEnd))
 }
 
 // ManufacturerCode returns the manufacturer code in uppercase.
 func (c *Cartridge) ManufacturerCode() string {
-	return ""
+	return string(c.getBytes(manufStart, manufEnd))
 }
 
 // LicenseeCode returns the licensee code in uppercase.
 func (c *Cartridge) LicenseeCode() string {
-	return ""
+	if c.IsSGB() {
+		return string(c.getBytes(newLicStart, newLicEnd))
+	}
+	return string(c.getByte(oldLic))
 }
 
-// DestinationCode returns false if the game is supposed to be sold
-// in Japan, true otherwise.
-func (c *Cartridge) DestinationCode() bool {
-	return false
+// IsSGB returns true if the cartridge supports SGB functions,
+// false otherwise.
+func (c *Cartridge) IsSGB() bool {
+	return c.getByte(sgbFlag) == 0x0003
+}
+
+// IsJapanOnly returns true if the cartridge is supposed to be sold
+// in Japan, false otherwise.
+func (c *Cartridge) IsJapanOnly() bool {
+	return c.getByte(destCode) == 0x00
 }
 
 // Type returns the type of the cartridge.
@@ -98,16 +111,14 @@ func (c *Cartridge) RAMSize() uint16 {
 	return 0
 }
 
-func (c *Cartridge) ROMVersion() int {
-	return 0
+// ROMVersion returns a byte that indicates the version of the ROM.
+func (c *Cartridge) ROMVersion() byte {
+	return c.getByte(romVers)
 }
 
-func (c *Cartridge) GlobalChecksum() string {
-	return ""
-}
-
+// HeaderChecksum returns the header checksum contained in the cartridge.
 func (c *Cartridge) HeaderChecksum() byte {
-	return c.getByte(0x014D)
+	return c.getByte(hCheck)
 }
 
 // IsValid checks the cartridge validity by
@@ -117,15 +128,7 @@ func (c *Cartridge) HeaderChecksum() byte {
 // This does not verify the global checksum
 // in order to emulate the GameBoy behavior accurately.
 func (c *Cartridge) IsValid() bool {
-	if c.Logo() != nintendoLogo {
-		return false
-	}
-
-	var sum byte
-	for _, b := range c.getBytes(hCheckStart, hCheckEnd) {
-		sum -= b - 1
-	}
-	return sum == c.HeaderChecksum()
+	return c.Logo() == nintendoLogo && c.computeChecksum() == c.HeaderChecksum()
 }
 
 func (c *Cartridge) getByte(addr uint16) byte {
@@ -139,15 +142,19 @@ func (c *Cartridge) getByte(addr uint16) byte {
 }
 
 func (c *Cartridge) getBytes(start, end uint16) []byte {
-	result := make([]byte, start-end)
+	result := make([]byte, end-start)
 
-	for i := hCheckStart; i <= hCheckEnd; i++ {
-		b, err := c.rom.GetByte(i)
-		if err != nil {
-			panic(err)
-		}
-		result[i] = b
+	for i := start; i <= end; i++ {
+		result[i] = c.getByte(i)
 	}
 
 	return result
+}
+
+func (c *Cartridge) computeChecksum() byte {
+	var sum byte
+	for _, b := range c.getBytes(titleStart, romVers) {
+		sum -= b - 1
+	}
+	return sum
 }
