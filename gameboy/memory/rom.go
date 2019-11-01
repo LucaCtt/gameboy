@@ -8,19 +8,16 @@ import (
 
 // ROM represents a generic Read Only Memory.
 type ROM struct {
-	rom        map[uint16]byte
-	start, end uint16
+	rom []byte
 }
 
-// NewROM creates a new ROM with addresses in
-// the given range. The start is inclusive, while
-// the end is non-inclusive.
-func NewROM(start, end uint16, content map[uint16]byte) *ROM {
-	return &ROM{content, start, end}
+// NewROM creates a new ROM with the given byte slice.
+func NewROM(content []byte) *ROM {
+	return &ROM{content}
 }
 
 // GetByte returns the byte at the given address.
-// If the address is outside the memory space, an
+// If the address is outside the memory, an
 // error will be returned.
 func (r *ROM) GetByte(addr uint16) (byte, error) {
 	if !r.Accepts(addr) {
@@ -33,8 +30,8 @@ func (r *ROM) GetByte(addr uint16) (byte, error) {
 }
 
 // SetByte has no effect if the address
-// is inside the memory space. Otherwise an
-// error will be returned.
+// is inside the memory.
+// Otherwise it returns an error.
 func (r *ROM) SetByte(addr uint16, value byte) error {
 	if !r.Accepts(addr) {
 		return errors.E(
@@ -45,7 +42,7 @@ func (r *ROM) SetByte(addr uint16, value byte) error {
 	return nil
 }
 
-// Accepts checks if an address is included in the memory range
+// Accepts checks if an address is included in the memory.
 func (r *ROM) Accepts(addr uint16) bool {
-	return addr >= r.start && addr < r.end
+	return addr < uint16(len(r.rom))
 }

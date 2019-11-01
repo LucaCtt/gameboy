@@ -12,17 +12,16 @@ func TestROM_Accepts(t *testing.T) {
 		addr uint16
 		want bool
 	}{
-		{"first byte", 0x0001, true},
+		{"first byte", 0x0000, true},
 		{"last byte", 0x0FFF, true},
-		{"zero", 0x0000, false},
 		{"upper bound", 0x1000, false},
 		{"valid byte", 0x0010, true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			content := make(map[uint16]byte)
-			mem := NewROM(0x0001, 0x1000, content)
+			content := make([]byte, 0x1000)
+			mem := NewROM(content)
 
 			got := mem.Accepts(tt.addr)
 			assert.Equal(t, got, tt.want)
@@ -31,10 +30,10 @@ func TestROM_Accepts(t *testing.T) {
 }
 
 func TestROM_GetByte(t *testing.T) {
-	t.Run("inside space", func(t *testing.T) {
-		content := make(map[uint16]byte)
+	t.Run("inside mem", func(t *testing.T) {
+		content := make([]byte, 0x1000)
 		content[0x0001] = 0x11
-		mem := NewROM(0x0001, 0x1000, content)
+		mem := NewROM(content)
 
 		got, err := mem.GetByte(0x0001)
 
@@ -42,9 +41,9 @@ func TestROM_GetByte(t *testing.T) {
 		assert.Equal(t, got, byte(0x11))
 	})
 
-	t.Run("outside space", func(t *testing.T) {
-		content := make(map[uint16]byte)
-		mem := NewROM(0x0001, 0x1000, content)
+	t.Run("outside mem", func(t *testing.T) {
+		content := make([]byte, 0x1000)
+		mem := NewROM(content)
 
 		got, err := mem.GetByte(0x1001)
 
@@ -54,9 +53,9 @@ func TestROM_GetByte(t *testing.T) {
 }
 
 func TestROM_SetByte(t *testing.T) {
-	t.Run("inside space", func(t *testing.T) {
-		content := make(map[uint16]byte)
-		mem := NewROM(0x0001, 0x1000, content)
+	t.Run("inside mem", func(t *testing.T) {
+		content := make([]byte, 0x1000)
+		mem := NewROM(content)
 
 		err := mem.SetByte(0x0001, 0x11)
 		got, err := mem.GetByte(0x0001)
@@ -65,9 +64,9 @@ func TestROM_SetByte(t *testing.T) {
 		assert.Equal(t, got, byte(0x00))
 	})
 
-	t.Run("outside space", func(t *testing.T) {
-		content := make(map[uint16]byte)
-		mem := NewROM(0x0001, 0x1000, content)
+	t.Run("outside mem", func(t *testing.T) {
+		content := make([]byte, 0x1000)
+		mem := NewROM(content)
 
 		err := mem.SetByte(0x1001, 0x11)
 		got, err := mem.GetByte(0x1001)

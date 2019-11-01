@@ -12,16 +12,15 @@ func TestRAM_Accepts(t *testing.T) {
 		addr uint16
 		want bool
 	}{
-		{"first byte", 0x0001, true},
+		{"first byte", 0x0000, true},
 		{"last byte", 0x0FFF, true},
-		{"zero", 0x0000, false},
 		{"upper bound", 0x1000, false},
 		{"valid byte", 0x0010, true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mem := NewRAM(0x0001, 0x1000)
+			mem := NewRAM(0x1000)
 
 			got := mem.Accepts(tt.addr)
 			assert.Equal(t, got, tt.want)
@@ -31,7 +30,7 @@ func TestRAM_Accepts(t *testing.T) {
 
 func TestRAM_GetByte(t *testing.T) {
 	t.Run("inside space", func(t *testing.T) {
-		mem := NewRAM(0x0001, 0x1000)
+		mem := NewRAM(0x1000)
 
 		got, err := mem.GetByte(0x0001)
 
@@ -40,7 +39,7 @@ func TestRAM_GetByte(t *testing.T) {
 	})
 
 	t.Run("outside space", func(t *testing.T) {
-		mem := NewRAM(0x0001, 0x1000)
+		mem := NewRAM(0x1000)
 
 		got, err := mem.GetByte(0x1001)
 
@@ -51,7 +50,7 @@ func TestRAM_GetByte(t *testing.T) {
 
 func TestRAM_SetByte(t *testing.T) {
 	t.Run("inside space", func(t *testing.T) {
-		mem := NewRAM(0x0001, 0x1000)
+		mem := NewRAM(0x1000)
 
 		err := mem.SetByte(0x0001, 0x11)
 		got, err := mem.GetByte(0x0001)
@@ -61,7 +60,7 @@ func TestRAM_SetByte(t *testing.T) {
 	})
 
 	t.Run("outside space", func(t *testing.T) {
-		mem := NewRAM(0x0001, 0x1000)
+		mem := NewRAM(0x1000)
 
 		err := mem.SetByte(0x1001, 0x11)
 		got, err := mem.GetByte(0x1001)

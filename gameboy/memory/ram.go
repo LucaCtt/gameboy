@@ -8,20 +8,18 @@ import (
 
 // RAM represents a generic Random Access Memory.
 type RAM struct {
-	ram        map[uint16]byte
-	start, end uint16
+	ram []byte
 }
 
-// NewRAM creates a new RAM with addresses in
-// the given range. The start is inclusive, while
-// the end is non-inclusive.
-func NewRAM(start, end uint16) *RAM {
-	return &RAM{make(map[uint16]byte), start, end}
+// NewRAM creates a new RAM with addresses from 0x0000
+// to the given length.
+func NewRAM(len uint16) *RAM {
+	return &RAM{make([]byte, len)}
 }
 
 // GetByte returns the byte at the given address.
-// If the address is outside the memory space, an
-// error will be returned.
+// If the address is outside the memory,
+// it will return an error.
 func (r *RAM) GetByte(addr uint16) (byte, error) {
 	if !r.Accepts(addr) {
 		return 0, errors.E(
@@ -33,8 +31,8 @@ func (r *RAM) GetByte(addr uint16) (byte, error) {
 }
 
 // SetByte sets the byte at the given address to the
-// given value. Is the address is outside the memory space,
-// an error will be returned.
+// given value. Is the address is outside the memory,
+// it will return an error.
 func (r *RAM) SetByte(addr uint16, value byte) error {
 	if !r.Accepts(addr) {
 		return errors.E(
@@ -46,7 +44,7 @@ func (r *RAM) SetByte(addr uint16, value byte) error {
 	return nil
 }
 
-// Accepts checks if an address is included in the memory range
+// Accepts checks if an address is included in the memory.
 func (r *RAM) Accepts(addr uint16) bool {
-	return addr >= r.start && addr < r.end
+	return addr < uint16(len(r.ram))
 }

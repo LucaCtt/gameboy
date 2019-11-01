@@ -7,32 +7,31 @@ import (
 	"github.com/lucactt/gameboy/util/assert"
 )
 
-type TestSpace struct {
-	start    uint16
-	end      uint16
+type TestMem struct {
+	len      uint16
 	value    byte
 	forceErr bool
 }
 
-func (s *TestSpace) GetByte(addr uint16) (byte, error) {
-	if !s.Accepts(addr) || s.forceErr {
+func (m *TestMem) GetByte(addr uint16) (byte, error) {
+	if !m.Accepts(addr) || m.forceErr {
 		return 0, errors.New("test")
 	}
 
-	return s.value, nil
+	return m.value, nil
 }
 
-func (s *TestSpace) SetByte(addr uint16, value byte) error {
-	if !s.Accepts(addr) || s.forceErr {
+func (m *TestMem) SetByte(addr uint16, value byte) error {
+	if !m.Accepts(addr) || m.forceErr {
 		return errors.New("test")
 	}
 
-	s.value = value
+	m.value = value
 	return nil
 }
 
-func (s *TestSpace) Accepts(addr uint16) bool {
-	return addr >= s.start && addr < s.end
+func (m *TestMem) Accepts(addr uint16) bool {
+	return addr < m.len
 }
 
 func TestMemory_GetByte(t *testing.T) {
@@ -44,17 +43,17 @@ func TestMemory_GetByte(t *testing.T) {
 		wantErr  bool
 	}{
 		{"addr in memory", 0x0001, false, 0x11, false},
-		{"addr not in memory", 0x1001, false, 0, true},
+		{"addr not in memory", 0x1000, false, 0, true},
 		{"space error", 0x0001, true, 0, true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			space := &TestSpace{start: 0x0000, end: 0x1000, value: tt.want, forceErr: tt.spaceErr}
-			mem := &Memory{}
-			mem.AddSpace(space)
+			mem := &TestMem{len: 0x1000, value: tt.want, forceErr: tt.spaceErr}
+			mmu := &MMU{}
+			mmu.AddMem(0x0000, mem)
 
-			got, err := mem.GetByte(tt.addr)
+			got, err := mmu.GetByte(tt.addr)
 			assert.Err(t, err, tt.wantErr)
 			assert.Equal(t, got, tt.want)
 		})
@@ -70,18 +69,18 @@ func TestMemory_SetByte(t *testing.T) {
 		wantErr  bool
 	}{
 		{"addr in memory", 0x0001, false, 0x11, false},
-		{"addr not in memory", 0x1001, false, 0, true},
+		{"addr not in memory", 0x1000, false, 0, true},
 		{"space error", 0x0001, true, 0, true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			space := &TestSpace{start: 0x0000, end: 0x1000, forceErr: tt.spaceErr}
-			mem := &Memory{}
-			mem.AddSpace(space)
+			mem := &TestMem{len: 0x1000, forceErr: tt.spaceErr}
+			mmu := &MMU{}
+			mmu.AddMem(0x0000, mem)
 
-			err := mem.SetByte(tt.addr, 0x11)
-			got, err := mem.GetByte(tt.addr)
+			err := mmu.SetByte(tt.addr, 0x11)
+			got, err := mmu.GetByte(tt.addr)
 			assert.Err(t, err, tt.wantErr)
 			assert.Equal(t, got, tt.want)
 		})
@@ -90,20 +89,20 @@ func TestMemory_SetByte(t *testing.T) {
 
 func TestMemory_Accepts(t *testing.T) {
 	t.Run("addr in space", func(t *testing.T) {
-		space := &TestSpace{start: 0x0000, end: 0x1000}
-		mem := &Memory{}
-		mem.AddSpace(space)
+		mem := &TestMem{len: 0x1000}
+		mmu := &MMU{}
+		mmu.AddMem(0x0000, mem)
 
-		got := mem.Accepts(0x0001)
+		got := mmu.Accepts(0x0001)
 		assert.Equal(t, got, true)
 	})
 
 	t.Run("addr not in space", func(t *testing.T) {
-		space := &TestSpace{start: 0x0000, end: 0x1000}
-		mem := &Memory{}
-		mem.AddSpace(space)
+		mem := &TestMem{len: 0x1000}
+		mmu := &MMU{}
+		mmu.AddMem(0x0000, mem)
 
-		got := mem.Accepts(0x1001)
+		got := mmu.Accepts(0x1001)
 		assert.Equal(t, got, false)
 	})
 }
