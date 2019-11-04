@@ -16,7 +16,8 @@ const (
 
 // Components where errors can be originated from.
 const (
-	Memory ErrComponent = "memory"
+	Memory    ErrComponent = "memory"
+	Cartridge ErrComponent = "cartridge"
 )
 
 // Error is a wrapper for an error value with added context.
