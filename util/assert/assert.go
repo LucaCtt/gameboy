@@ -17,5 +17,7 @@ func Equal(t *testing.T, got, want interface{}) {
 // Err verifies that the given error is (or is not) nil.
 func Err(t *testing.T, got error, want bool) {
 	t.Helper()
-	Equal(t, got != nil, want)
+	if (got != nil) != want {
+		t.Errorf("got %q, want %t", got, want)
+	}
 }

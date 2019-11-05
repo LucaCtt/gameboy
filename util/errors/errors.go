@@ -29,6 +29,9 @@ type Error struct {
 }
 
 func (e *Error) Error() string {
+	if e.Err == nil {
+		return fmt.Sprintf("%s", e.Message)
+	}
 	return fmt.Sprintf("%s: %v", e.Message, e.Err)
 }
 
