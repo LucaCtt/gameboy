@@ -1,6 +1,8 @@
 package cartridge
 
 import (
+	"bytes"
+	"fmt"
 	"io/ioutil"
 	"path"
 
@@ -24,21 +26,29 @@ const (
 	logoEnd     uint16 = 0x0133
 	titleStart  uint16 = 0x0134
 	titleEnd    uint16 = 0x0143
-	manufStart  uint16 = 0x013F
-	manufEnd    uint16 = 0x0142
 	gbcFlag     uint16 = 0x0143
-	newLicStart uint16 = 0x0144
-	newLicEnd   uint16 = 0x0145
-	sgbFlag     uint16 = 0x0146
 	cartType    uint16 = 0x0147
 	romSize     uint16 = 0x0148
 	ramSize     uint16 = 0x0149
-	destCode    uint16 = 0x014A
-	oldLic      uint16 = 0x014B
-	romVers     uint16 = 0x014C
 	hCheck      uint16 = 0x014D
-	gCheckStart uint16 = 0x014E
-	gCheckEnd   uint16 = 0x014F
+	hCheckStart uint16 = 0x0134
+	hCheckEnd   uint16 = 0x014C
+	hEnd        uint16 = 0x014F
+)
+
+// Type represents the type of controller
+// in the cartridge.
+type Type string
+
+// Controller types.
+const (
+	MBC1 Type = "MBC1"
+	MBC2 Type = "MBC2"
+	MBC3 Type = "MBC3"
+	MBC5 Type = "MBC5"
+	MBC6 Type = "MBC6"
+	MBC7 Type = "MBC7"
+	ROM  Type = "ROM"
 )
 
 // Reader represents a GameBoy cartridge data reader.
@@ -50,21 +60,12 @@ type Reader struct {
 	rom *memory.ROM
 }
 
-// New creates a new cartridge reader with the ROM
-// at the given path.
+// NewReader creates a new cartridge reader with the given ROM
 //
-// The ROM file must have a ".gb" file extension and
-// its total size must at least be enough
+// The ROM must at least be large enough
 // to contain the cartridge header.
-func New(path string) (*Reader, error) {
-	data, err := readROM(path)
-
-	if err != nil {
-		return nil, errors.E("cannot read ROM file", err, errors.Cartridge)
-	}
-
-	rom := memory.NewROM(data)
-	if !rom.Accepts(gCheckEnd) {
+func NewReader(rom *memory.ROM) (*Reader, error) {
+	if !rom.Accepts(hEnd) {
 		return nil, errors.E("rom size insufficient to contain header", errors.Cartridge)
 	}
 
@@ -85,14 +86,10 @@ func (r *Reader) Logo() [48]byte {
 	return logo
 }
 
-// Title returns the title of the game in uppercase.
+// Title returns the title of the game.
 func (r *Reader) Title() string {
-	return string(r.getBytes(titleStart, titleEnd))
-}
-
-// ManufacturerCode returns the manufacturer code in uppercase.
-func (r *Reader) ManufacturerCode() string {
-	return string(r.getBytes(manufStart, manufEnd))
+	temp := r.getBytes(titleStart, titleEnd)
+	return string(bytes.Trim(temp, "\x00"))
 }
 
 // IsGBCOnly returns true if the cartridge can only run on the GameBoy Color.
@@ -101,52 +98,25 @@ func (r *Reader) IsGBCOnly() bool {
 	return flag == 0xC0
 }
 
-// LicenseeCode returns the licensee code in uppercase.
-func (r *Reader) LicenseeCode() string {
-	if r.IsSGB() {
-		return string(r.getBytes(newLicStart, newLicEnd))
+// Type returns true if the cartridge contains a MBC1.
+func (r *Reader) Type() Type {
+	t := r.getByte(cartType)
+	switch {
+	case t >= 0x01 && t <= 0x03:
+		return MBC1
+	case t == 0x05 || t == 0x06:
+		return MBC2
+	case t >= 0x0F && t <= 0x13:
+		return MBC3
+	case t >= 0x19 && t <= 0x1E:
+		return MBC5
+	case t == 0x20:
+		return MBC6
+	case t == 0x22:
+		return MBC7
+	default:
+		return ROM
 	}
-	return string(r.getByte(oldLic))
-}
-
-// IsSGB returns true if the cartridge supports SGB functions,
-// false otherwise.
-func (r *Reader) IsSGB() bool {
-	return r.getByte(sgbFlag) == 0x03
-}
-
-// IsMBC1 returns true if the cartridge contains a MBC1.
-func (r *Reader) IsMBC1() bool {
-	t := r.getByte(cartType)
-	return t >= 0x01 && t <= 0x03
-}
-
-// IsMBC2 returns true if the cartridge contains a MBC2.
-func (r *Reader) IsMBC2() bool {
-	t := r.getByte(cartType)
-	return t == 0x05 || t == 0x06
-}
-
-// IsMBC3 returns true if the cartridge contains a MBC3.
-func (r *Reader) IsMBC3() bool {
-	t := r.getByte(cartType)
-	return t >= 0x0F && t <= 0x13
-}
-
-// IsMBC5 returns true if the cartridge contains a MBC5.
-func (r *Reader) IsMBC5() bool {
-	t := r.getByte(cartType)
-	return t >= 0x19 && t <= 0x1E
-}
-
-// IsMBC6 returns true if the cartridge contains a MBC6.
-func (r *Reader) IsMBC6() bool {
-	return r.getByte(cartType) == 0x20
-}
-
-// IsMBC7 returns true if the cartridge contains a MBC7.
-func (r *Reader) IsMBC7() bool {
-	return r.getByte(cartType) == 0x22
 }
 
 // HasBattery returns true if the cartridge containts a battery.
@@ -161,17 +131,6 @@ func (r *Reader) HasBattery() bool {
 	}
 
 	return false
-}
-
-// IsJapanOnly returns true if the cartridge is supposed to be sold
-// in Japan, false otherwise.
-func (r *Reader) IsJapanOnly() bool {
-	return r.getByte(destCode) == 0x00
-}
-
-// ROMVersion returns a byte that indicates the version of the ROM.
-func (r *Reader) ROMVersion() byte {
-	return r.getByte(romVers)
 }
 
 // HeaderChecksum returns the header checksum contained in the cartridge.
@@ -195,17 +154,17 @@ func (r *Reader) getByte(addr uint16) byte {
 	b, err := r.rom.GetByte(addr)
 
 	if err != nil {
-		panic(err)
+		panic(errors.E(fmt.Sprintf("read address %d failed", addr), err, errors.Cartridge))
 	}
 
 	return b
 }
 
 func (r *Reader) getBytes(start, end uint16) []byte {
-	result := make([]byte, end-start)
+	result := make([]byte, end-start+1)
 
-	for i := start; i <= end; i++ {
-		result[i] = r.getByte(i)
+	for i := uint16(0); i <= end-start; i++ {
+		result[i] = r.getByte(start + i)
 	}
 
 	return result
@@ -213,7 +172,7 @@ func (r *Reader) getBytes(start, end uint16) []byte {
 
 func (r *Reader) computeChecksum() byte {
 	var sum byte
-	for _, b := range r.getBytes(titleStart, romVers) {
+	for _, b := range r.getBytes(hCheckStart, hCheckEnd) {
 		sum -= b - 1
 	}
 	return sum
