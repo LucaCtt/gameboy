@@ -10,7 +10,7 @@ import (
 func Equal(t *testing.T, got, want interface{}) {
 	t.Helper()
 	if !reflect.DeepEqual(got, want) {
-		t.Errorf("got %v, want %v", got, want)
+		t.Errorf("got %+v, want %+v", got, want)
 	}
 }
 
@@ -18,6 +18,6 @@ func Equal(t *testing.T, got, want interface{}) {
 func Err(t *testing.T, got error, want bool) {
 	t.Helper()
 	if (got != nil) != want {
-		t.Errorf("got %q, want %t", got, want)
+		t.Errorf("got %v, want %t", got, want)
 	}
 }
