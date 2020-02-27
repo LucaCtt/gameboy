@@ -10,6 +10,7 @@ Please don't sue me Nintendo-sama.
 - [GameBoy CPU manual](http://marc.rawer.de/Gameboy/Docs/GBCPUman.pdf)
 - [coffee-gb](https://github.com/trekawek/coffee-gb)
 - [The Cycle-Accurate Game Boy Docs](https://github.com/AntonioND/giibiiadvance/tree/master/docs)
+- [goboy](https://github.com/Humpheh/goboy)
 
 ## License
 

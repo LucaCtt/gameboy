@@ -53,7 +53,7 @@ func (c *Cart) Title() string {
 }
 
 // GetByte returns the byte at the given address.
-// If the address is outside the cartridge, an
+// If the address is not valid, an
 // error will be returned.
 func (c *Cart) GetByte(addr uint16) (byte, error) {
 	b, err := c.ctr.GetByte(addr)
@@ -63,9 +63,8 @@ func (c *Cart) GetByte(addr uint16) (byte, error) {
 	return b, nil
 }
 
-// SetByte has no effect if the address
-// is inside the cartridge.
-// Otherwise it returns an error.
+// SetByte writes the given value at the given address.
+// It will return an error if the address is invalid.
 func (c *Cart) SetByte(addr uint16, value byte) error {
 	if err := c.ctr.SetByte(addr, value); err != nil {
 		return errors.E("get byte from cartridge failed", err, errors.Cartridge)
@@ -94,5 +93,31 @@ func Open(p string) (*Cart, error) {
 }
 
 func controller(rom *memory.ROM) (Controller, error) {
-	return nil, nil
+	t := getByte(rom, cartType)
+
+	switch {
+	case t == 0x00 || t == 0x08 || t == 0x09:
+		return NewROM(rom)
+	default:
+		return nil, errors.E("unsupported cartridge type", errors.Cartridge)
+	}
+}
+
+func romBanks(rom *memory.ROM) int {
+	return 2 * (int(getByte(rom, romSize)) ^ 2)
+}
+
+func ramBanks(rom *memory.ROM) int {
+	switch getByte(rom, ramSize) {
+	case 0x02:
+		return 1
+	case 0x03:
+		return 4
+	case 0x04:
+		return 16
+	case 0x05:
+		return 8
+	default:
+		return 0
+	}
 }

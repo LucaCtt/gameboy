@@ -8,18 +8,27 @@ import (
 )
 
 func TestNewCart(t *testing.T) {
-	bytes := make([]byte, 0)
+	t.Run("invalid rom", func(t *testing.T) {
+		bytes := make([]byte, 0)
+		rom := memory.NewROM(bytes)
 
-	rom := memory.NewROM(bytes)
+		_, err := NewCart(rom)
+		assert.Err(t, err, true)
+	})
 
-	_, err := NewCart(rom)
-	assert.Err(t, err, true)
+	t.Run("invalid controller", func(t *testing.T) {
+		bytes := make([]byte, 0xFFFF)
+		bytes[cartType] = 0xFF
+		rom := memory.NewROM(bytes)
+
+		_, err := NewCart(rom)
+		assert.Err(t, err, true)
+	})
 }
 
 func TestReader_Title(t *testing.T) {
-	bytes := make([]byte, headerEnd+1)
+	bytes := make([]byte, 0xFFFF)
 	copyAt([]byte{0x54, 0x45, 0x53, 0x54}, bytes, titleStart)
-
 	rom := memory.NewROM(bytes)
 
 	r, _ := NewCart(rom)
