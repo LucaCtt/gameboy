@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/lucactt/gameboy/gameboy/memory"
+	"github.com/lucactt/gameboy/gameboy/mem"
 	"github.com/lucactt/gameboy/util/errors"
 )
 
 // getByte returns the byte found at the given address
 // in the given memory. It will panic if the address is invalid.
-func getByte(mem memory.Memory, addr uint16) byte {
+func getByte(mem mem.Mem, addr uint16) byte {
 	b, err := mem.GetByte(addr)
 
 	if err != nil {
@@ -22,7 +22,7 @@ func getByte(mem memory.Memory, addr uint16) byte {
 
 // setByte sets the byte at the given address
 // in the given memory. It will panic if the address is invalid.
-func setByte(mem memory.Memory, addr uint16, value byte) {
+func setByte(mem mem.Mem, addr uint16, value byte) {
 	err := mem.SetByte(addr, value)
 
 	if err != nil {
@@ -32,7 +32,7 @@ func setByte(mem memory.Memory, addr uint16, value byte) {
 
 // getBytes returns a slice of the bytes found at the given address
 // range in the given memory. It will panic if the addresses are invalid.
-func getBytes(mem memory.Memory, start, end uint16) []byte {
+func getBytes(mem mem.Mem, start, end uint16) []byte {
 	result := make([]byte, end-start+1)
 
 	for i := uint16(0); i <= end-start; i++ {
@@ -42,6 +42,6 @@ func getBytes(mem memory.Memory, start, end uint16) []byte {
 	return result
 }
 
-func getString(mem memory.Memory, start, end uint16) string {
+func getString(mem mem.Mem, start, end uint16) string {
 	return string(bytes.Trim(getBytes(mem, start, end), "\x00"))
 }

@@ -3,14 +3,14 @@ package cart
 import (
 	"testing"
 
-	"github.com/lucactt/gameboy/gameboy/memory"
+	"github.com/lucactt/gameboy/gameboy/mem"
 	"github.com/lucactt/gameboy/util/assert"
 )
 
 func Test_newROMCtr(t *testing.T) {
 	t.Run("invalid rom", func(t *testing.T) {
 		bytes := make([]byte, 0)
-		rom := memory.NewROM(bytes)
+		rom := mem.NewROM(bytes)
 
 		_, err := NewROM(rom)
 		assert.Err(t, err, true)
@@ -18,7 +18,7 @@ func Test_newROMCtr(t *testing.T) {
 
 	t.Run("valid rom", func(t *testing.T) {
 		bytes := make([]byte, 0xFFFF)
-		rom := memory.NewROM(bytes)
+		rom := mem.NewROM(bytes)
 
 		_, err := NewROM(rom)
 		assert.Err(t, err, false)
@@ -28,7 +28,7 @@ func Test_newROMCtr(t *testing.T) {
 func Test_romCtr_GetByte(t *testing.T) {
 	t.Run("RAM addr", func(t *testing.T) {
 		bytes := make([]byte, 0xFFFF)
-		rom := memory.NewROM(bytes)
+		rom := mem.NewROM(bytes)
 
 		ctr, _ := NewROM(rom)
 
@@ -40,7 +40,7 @@ func Test_romCtr_GetByte(t *testing.T) {
 	t.Run("ROM addr", func(t *testing.T) {
 		bytes := make([]byte, 0xFFFF)
 		bytes[0x0001] = 0x11
-		rom := memory.NewROM(bytes)
+		rom := mem.NewROM(bytes)
 
 		ctr, _ := NewROM(rom)
 
@@ -52,7 +52,7 @@ func Test_romCtr_GetByte(t *testing.T) {
 
 func Test_romCtr_SetByte(t *testing.T) {
 	bytes := make([]byte, 0xFFFF)
-	rom := memory.NewROM(bytes)
+	rom := mem.NewROM(bytes)
 
 	ctr, _ := NewROM(rom)
 
@@ -66,7 +66,7 @@ func Test_romCtr_SetByte(t *testing.T) {
 func Test_romCtr_Accepts(t *testing.T) {
 	t.Run("RAM address", func(t *testing.T) {
 		bytes := make([]byte, 0xFFFF)
-		rom := memory.NewROM(bytes)
+		rom := mem.NewROM(bytes)
 
 		ctr, _ := NewROM(rom)
 
@@ -76,7 +76,7 @@ func Test_romCtr_Accepts(t *testing.T) {
 
 	t.Run("ROM address", func(t *testing.T) {
 		bytes := make([]byte, 0xFFFF)
-		rom := memory.NewROM(bytes)
+		rom := mem.NewROM(bytes)
 
 		ctr, _ := NewROM(rom)
 

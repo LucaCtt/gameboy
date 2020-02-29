@@ -1,7 +1,7 @@
 package cart
 
 import (
-	"github.com/lucactt/gameboy/gameboy/memory"
+	"github.com/lucactt/gameboy/gameboy/mem"
 	"github.com/lucactt/gameboy/util/errors"
 )
 
@@ -12,13 +12,13 @@ import (
 // so any reads from 0xA000-0xBFFF will return 0xFF
 // and writes will have no effect.
 type ROM struct {
-	rom *memory.ROM
+	rom *mem.ROM
 }
 
 // NewROM creates a new ROM controller with the given rom.
 // The rom must at least include addresses until 0x7FFF, otherwise
 // an error will be returned.
-func NewROM(rom *memory.ROM) (*ROM, error) {
+func NewROM(rom *mem.ROM) (*ROM, error) {
 	if !rom.Accepts(0x7FFF) {
 		return nil, errors.E("rom size insufficient", errors.Cartridge)
 	}

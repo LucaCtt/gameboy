@@ -1,25 +1,26 @@
-// Package memory implements concrete memory types
-// along with a generic memory struct that can contain
-// a number of memory spaces.
-package memory
+// Package mem implements various memory types.
+package mem
 
 import "github.com/lucactt/gameboy/util/errors"
 
-// Memory represents a general purpose memory from which bytes
+// Mem represents a general purpose memory from which bytes
 // can be read and written.
 //
-// When an address is outside the memory, an error will be returned.
-type Memory interface {
+// The addresses of a mem should always start at 0x00.
+//
+// When an address is not withing the memory addresses range,
+// an error must be returned.
+type Mem interface {
 	GetByte(addr uint16) (byte, error)
 	SetByte(addr uint16, value byte) error
 	Accepts(addr uint16) bool
 }
 
-// space is a wrapper for a memory, that allows associating
+// space is a wrapper for a mem, that associates
 // a start address with the start of the memory.
 type space struct {
 	start uint16
-	mem   Memory
+	mem   Mem
 }
 
 func (s *space) GetByte(addr uint16) (byte, error) {
@@ -88,6 +89,6 @@ func (m *MMU) Accepts(addr uint16) bool {
 }
 
 // AddMem adds a memory to the MMU.
-func (m *MMU) AddMem(start uint16, mem Memory) {
+func (m *MMU) AddMem(start uint16, mem Mem) {
 	m.spaces = append(m.spaces, &space{start, mem})
 }

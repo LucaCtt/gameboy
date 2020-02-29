@@ -2,9 +2,8 @@ package cart
 
 import (
 	"io/ioutil"
-	"path"
 
-	"github.com/lucactt/gameboy/gameboy/memory"
+	"github.com/lucactt/gameboy/gameboy/mem"
 	"github.com/lucactt/gameboy/util/errors"
 )
 
@@ -21,7 +20,7 @@ const (
 // Controller represents the type of memory bank controller used
 // in the cartridge.
 type Controller interface {
-	memory.Memory
+	mem.Mem
 }
 
 // Cart represents a Gameboy cartridge.
@@ -32,7 +31,7 @@ type Cart struct {
 
 // NewCart creates a new cartridge from the given ROM.
 // It will return an error if the ROM is an invalid cartridge.
-func NewCart(rom *memory.ROM) (*Cart, error) {
+func NewCart(rom *mem.ROM) (*Cart, error) {
 	if !rom.Accepts(headerEnd) {
 		return nil, errors.E("rom size insufficient to contain header", errors.Cartridge)
 	}
@@ -80,19 +79,15 @@ func (c *Cart) Accepts(addr uint16) bool {
 // Open reads a file and creates a new cartridge
 // with its content.
 func Open(p string) (*Cart, error) {
-	if path.Ext(p) != ".gb" {
-		return nil, errors.E("invalid cartridge file format", errors.Cartridge)
-	}
-
 	bytes, err := ioutil.ReadFile(p)
 	if err != nil {
 		return nil, errors.E("read cartridge file failed", err, errors.Cartridge)
 	}
 
-	return NewCart(memory.NewROM(bytes))
+	return NewCart(mem.NewROM(bytes))
 }
 
-func controller(rom *memory.ROM) (Controller, error) {
+func controller(rom *mem.ROM) (Controller, error) {
 	t := getByte(rom, cartType)
 
 	switch {
@@ -103,11 +98,11 @@ func controller(rom *memory.ROM) (Controller, error) {
 	}
 }
 
-func romBanks(rom *memory.ROM) int {
+func romBanks(rom *mem.ROM) int {
 	return 2 * (int(getByte(rom, romSize)) ^ 2)
 }
 
-func ramBanks(rom *memory.ROM) int {
+func ramBanks(rom *mem.ROM) int {
 	switch getByte(rom, ramSize) {
 	case 0x02:
 		return 1

@@ -1,4 +1,4 @@
-package memory
+package mem
 
 import (
 	"errors"
@@ -34,7 +34,7 @@ func (m *TestMem) Accepts(addr uint16) bool {
 	return addr < m.len
 }
 
-func TestMemory_GetByte(t *testing.T) {
+func TestMem_GetByte(t *testing.T) {
 	tests := []struct {
 		name     string
 		addr     uint16
@@ -60,7 +60,7 @@ func TestMemory_GetByte(t *testing.T) {
 	}
 }
 
-func TestMemory_SetByte(t *testing.T) {
+func TestMem_SetByte(t *testing.T) {
 	tests := []struct {
 		name     string
 		addr     uint16
@@ -87,7 +87,7 @@ func TestMemory_SetByte(t *testing.T) {
 	}
 }
 
-func TestMemory_Accepts(t *testing.T) {
+func TestMem_Accepts(t *testing.T) {
 	t.Run("addr in space", func(t *testing.T) {
 		mem := &TestMem{len: 0x1000}
 		mmu := &MMU{}

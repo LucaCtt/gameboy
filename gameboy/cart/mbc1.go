@@ -1,18 +1,18 @@
 package cart
 
-import "github.com/lucactt/gameboy/gameboy/memory"
+import "github.com/lucactt/gameboy/gameboy/mem"
 
 type MBC1 struct {
-	rom                *memory.ROM
-	ram                *memory.RAM
+	rom                *mem.ROM
+	ram                *mem.RAM
 	romBanks, ramBanks int
 	ramEnabled         bool
 	isROMBanking       bool
 	romBank, ramBank   int
 }
 
-func NewMBC1(rom *memory.ROM, romBanks, ramBanks int) *MBC1 {
-	ram := memory.NewRAM(uint16(0x2000 * ramBanks))
+func NewMBC1(rom *mem.ROM, romBanks, ramBanks int) *MBC1 {
+	ram := mem.NewRAM(uint16(0x2000 * ramBanks))
 	return &MBC1{rom, ram, romBanks, ramBanks, false, true, 1, 1}
 }
 
