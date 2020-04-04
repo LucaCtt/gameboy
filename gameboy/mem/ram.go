@@ -7,6 +7,7 @@ import (
 )
 
 // RAM represents a generic Random Access Memory.
+// All of its addresses start at 0x00.
 type RAM struct {
 	ram []byte
 }

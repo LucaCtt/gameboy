@@ -6,9 +6,9 @@ import (
 	"github.com/lucactt/gameboy/util/assert"
 )
 
-func TestNullMem_GetByte(t *testing.T) {
+func TestNull_GetByte(t *testing.T) {
 	t.Run("inside space", func(t *testing.T) {
-		mem := NewNullMem(0x1000)
+		mem := NewNull(0x1000)
 
 		got, err := mem.GetByte(0x0001)
 
@@ -17,7 +17,7 @@ func TestNullMem_GetByte(t *testing.T) {
 	})
 
 	t.Run("outside space", func(t *testing.T) {
-		mem := NewNullMem(0x1000)
+		mem := NewNull(0x1000)
 
 		got, err := mem.GetByte(0x1001)
 
@@ -26,9 +26,9 @@ func TestNullMem_GetByte(t *testing.T) {
 	})
 }
 
-func TestNullMem_SetByte(t *testing.T) {
+func TestNull_SetByte(t *testing.T) {
 	t.Run("inside space", func(t *testing.T) {
-		mem := NewNullMem(0x1000)
+		mem := NewNull(0x1000)
 
 		err := mem.SetByte(0x0001, 0x11)
 		got, err := mem.GetByte(0x0001)
@@ -38,7 +38,7 @@ func TestNullMem_SetByte(t *testing.T) {
 	})
 
 	t.Run("outside space", func(t *testing.T) {
-		mem := NewNullMem(0x1000)
+		mem := NewNull(0x1000)
 
 		err := mem.SetByte(0x1001, 0x11)
 		got, err := mem.GetByte(0x1001)
@@ -48,7 +48,7 @@ func TestNullMem_SetByte(t *testing.T) {
 	})
 }
 
-func TestNullMem_Accepts(t *testing.T) {
+func TestNull_Accepts(t *testing.T) {
 	tests := []struct {
 		name string
 		addr uint16
@@ -62,7 +62,7 @@ func TestNullMem_Accepts(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mem := NewNullMem(0x1000)
+			mem := NewNull(0x1000)
 
 			got := mem.Accepts(tt.addr)
 			assert.Equal(t, got, tt.want)

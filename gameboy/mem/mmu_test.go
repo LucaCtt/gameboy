@@ -7,6 +7,8 @@ import (
 	"github.com/lucactt/gameboy/util/assert"
 )
 
+// TestMem is a simple memory that stores a single byte value,
+// and can be forced to return an error.
 type TestMem struct {
 	len      uint16
 	value    byte
@@ -102,7 +104,7 @@ func TestMem_Accepts(t *testing.T) {
 		mmu := &MMU{}
 		mmu.AddMem(0x0000, mem)
 
-		got := mmu.Accepts(0x1001)
+		got := mmu.Accepts(0x1000)
 		assert.Equal(t, got, false)
 	})
 }

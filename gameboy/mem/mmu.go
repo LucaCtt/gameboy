@@ -6,18 +6,28 @@ import "github.com/lucactt/gameboy/util/errors"
 // Mem represents a general purpose memory from which bytes
 // can be read and written.
 //
-// The addresses of a mem should always start at 0x00.
+// The addresses of a mem must always start at 0x00.
 //
-// When an address is not withing the memory addresses range,
+// When an address is not within the memory addresses range,
 // an error must be returned.
 type Mem interface {
+	// GetByte returns the byte at the given address, or an error if
+	// the mem doesn't accept the address.
 	GetByte(addr uint16) (byte, error)
+
+	// SetByte sets the byte at the given address to the given value, and
+	// returns an error if the mem doesn't accept the address.
 	SetByte(addr uint16, value byte) error
+
+	// Accepts checks that the address is non-negative,
+	// and strictly less than the memory length.
 	Accepts(addr uint16) bool
 }
 
 // space is a wrapper for a mem, that associates
 // a start address with the start of the memory.
+//
+// This is required because the interface Mem doesn't store a start addr.
 type space struct {
 	start uint16
 	mem   Mem
@@ -36,9 +46,9 @@ func (s *space) Accepts(addr uint16) bool {
 }
 
 // MMU represents a Memory Management Unit that wraps many
-// memories.
+// memories. Externally it behaves just like any memory.
 //
-// It itself implements the Memory interface.
+// It implements the Mem interface.
 type MMU struct {
 	spaces []*space
 }
@@ -80,6 +90,10 @@ func (m *MMU) SetByte(addr uint16, value byte) error {
 // Accepts checks if any of the underlying memories
 // accept the given address.
 func (m *MMU) Accepts(addr uint16) bool {
+	if addr < 0 {
+		return false
+	}
+
 	for _, s := range m.spaces {
 		if s.Accepts(addr) {
 			return true
@@ -88,7 +102,11 @@ func (m *MMU) Accepts(addr uint16) bool {
 	return false
 }
 
-// AddMem adds a memory to the MMU.
+// AddMem adds a memory to the MMU at the given address.
+//
+// Note that if the MMU already contains a memory that "covers"
+// (even some of) the addresses of the Mem to add, that memory
+// will be the one to handle those addresses.
 func (m *MMU) AddMem(start uint16, mem Mem) {
 	m.spaces = append(m.spaces, &space{start, mem})
 }
