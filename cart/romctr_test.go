@@ -8,35 +8,41 @@ import (
 )
 
 func Test_newROMCtr(t *testing.T) {
-	t.Run("rom size is too small", func(t *testing.T) {
+	t.Run("ROM size is too small", func(t *testing.T) {
 		bytes := make([]byte, 0)
 		rom := mem.NewROM(bytes)
 
-		got, err := NewROM(rom)
+		_, err := NewROMCtr(rom)
 		assert.Err(t, err, true)
-		assert.NotEqual(t, got, nil)
 	})
 
-	t.Run("rom size is big enough", func(t *testing.T) {
+	t.Run("ROM size is too big", func(t *testing.T) {
 		bytes := make([]byte, 0xFFFF)
 		rom := mem.NewROM(bytes)
 
-		got, err := NewROM(rom)
-		assert.Err(t, err, false)
-		assert.NotEqual(t, got, nil)
+		_, err := NewROMCtr(rom)
+		assert.Err(t, err, true)
 	})
-}
 
-func Test_romCtr_GetByte(t *testing.T) {
-	t.Run("RAM addr", func(t *testing.T) {
+	t.Run("ROM size is big enough", func(t *testing.T) {
 		// The length of this slice must be at least romEnd + 1, and not just romEnd
 		// because that would create a slice with addresses between 0 and romEnd - 1.
 		bytes := make([]byte, romEnd+1)
+		rom := mem.NewROM(bytes)
+
+		_, err := NewROMCtr(rom)
+		assert.Err(t, err, false)
+	})
+}
+
+func Test_ROMCtr_GetByte(t *testing.T) {
+	t.Run("RAM addr", func(t *testing.T) {
+		bytes := make([]byte, romEnd+1)
 		// Set the ram banks flag byte to a value that indicates at least 1 bank.
-		bytes[ramSize] = 0x02
+		bytes[ramSize] = ramBank1
 
 		rom := mem.NewROM(bytes)
-		ctr, _ := NewROM(rom)
+		ctr, _ := NewROMCtr(rom)
 
 		// The ram is created by the controller, so it can be accessed
 		// only by using SetByte.
@@ -54,8 +60,7 @@ func Test_romCtr_GetByte(t *testing.T) {
 		bytes[romStart] = 0x11
 
 		rom := mem.NewROM(bytes)
-
-		ctr, _ := NewROM(rom)
+		ctr, _ := NewROMCtr(rom)
 
 		got, err := ctr.GetByte(romStart)
 		assert.Err(t, err, false)
@@ -63,13 +68,13 @@ func Test_romCtr_GetByte(t *testing.T) {
 	})
 }
 
-func Test_romCtr_SetByte(t *testing.T) {
+func Test_ROMCtr_SetByte(t *testing.T) {
 	t.Run("RAM address", func(t *testing.T) {
 		bytes := make([]byte, romEnd+1)
-		bytes[ramSize] = 0x02
+		bytes[ramSize] = ramBank1
 
 		rom := mem.NewROM(bytes)
-		ctr, _ := NewROM(rom)
+		ctr, _ := NewROMCtr(rom)
 
 		err := ctr.SetByte(ramEnd, 0x11)
 		assert.Err(t, err, false)
@@ -81,34 +86,40 @@ func Test_romCtr_SetByte(t *testing.T) {
 	t.Run("ROM address", func(t *testing.T) {
 		bytes := make([]byte, romEnd+1)
 		rom := mem.NewROM(bytes)
-		ctr, _ := NewROM(rom)
+		ctr, _ := NewROMCtr(rom)
 
-		err := ctr.SetByte(romStart, 0x11)
+		err := ctr.SetByte(romEnd, 0x11)
 		assert.Err(t, err, false)
 
-		got, _ := ctr.GetByte(romStart)
+		got, _ := ctr.GetByte(romEnd)
 		assert.Equal(t, got, byte(0x00))
 	})
 }
 
-func Test_romCtr_Accepts(t *testing.T) {
+func Test_ROMCtr_Accepts(t *testing.T) {
 	t.Run("RAM address", func(t *testing.T) {
 		bytes := make([]byte, romEnd+1)
-		bytes[ramSize] = 0x02
+		bytes[ramSize] = ramBank1
 
 		rom := mem.NewROM(bytes)
-		ctr, _ := NewROM(rom)
+		ctr, _ := NewROMCtr(rom)
 
 		got := ctr.Accepts(ramStart)
+		assert.Equal(t, got, true)
+
+		got = ctr.Accepts(ramEnd)
 		assert.Equal(t, got, true)
 	})
 
 	t.Run("ROM address", func(t *testing.T) {
 		bytes := make([]byte, romEnd+1)
 		rom := mem.NewROM(bytes)
-		ctr, _ := NewROM(rom)
+		ctr, _ := NewROMCtr(rom)
 
-		got := ctr.Accepts(0x0000)
+		got := ctr.Accepts(romStart)
+		assert.Equal(t, got, true)
+
+		got = ctr.Accepts(romEnd)
 		assert.Equal(t, got, true)
 	})
 }

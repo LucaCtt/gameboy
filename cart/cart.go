@@ -93,7 +93,7 @@ func controller(rom *mem.ROM) (Controller, error) {
 
 	switch {
 	case t == 0x00 || t == 0x08 || t == 0x09:
-		return NewROM(rom)
+		return NewROMCtr(rom)
 	default:
 		return nil, errors.E("unsupported cartridge type", errors.Cartridge)
 	}

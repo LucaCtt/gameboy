@@ -8,6 +8,15 @@ import (
 	"github.com/lucactt/gameboy/util/errors"
 )
 
+const (
+	ramBank1 byte = 0x02
+	ramBank4 byte = 0x03
+
+	// No, this is not a mistake
+	ramBank8  byte = 0x05
+	ramBank16 byte = 0x04
+)
+
 // getByte returns the byte found at the given address
 // in the given memory. It will panic if the address is invalid.
 func getByte(mem mem.Mem, addr uint16) byte {
@@ -42,6 +51,8 @@ func getBytes(mem mem.Mem, start, end uint16) []byte {
 	return result
 }
 
+// getString builds a string using the sequence of bytes between two memory addresses,
+// trimming any 0x00 byte.
 func getString(mem mem.Mem, start, end uint16) string {
 	return string(bytes.Trim(getBytes(mem, start, end), "\x00"))
 }
@@ -51,21 +62,18 @@ func romBanks(rom *mem.ROM) int {
 	return 2 * (int(getByte(rom, romSize)) ^ 2)
 }
 
+// ramBanks reads the number of RAM banks.
 func ramBanks(rom *mem.ROM) int {
 	switch getByte(rom, ramSize) {
-	case 0x02:
+	case ramBank1:
 		return 1
-	case 0x03:
+	case ramBank4:
 		return 4
-	case 0x04:
+	case ramBank16:
 		return 16
-	case 0x05:
+	case ramBank8:
 		return 8
 	default:
 		return 0
 	}
-}
-
-func hasRAM(rom *mem.ROM) bool {
-	return ramBanks(rom) != 0
 }
