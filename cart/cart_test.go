@@ -24,10 +24,18 @@ func TestNewCart(t *testing.T) {
 		_, err := NewCart(rom)
 		assert.Err(t, err, true)
 	})
+
+	t.Run("valid controller", func(t *testing.T) {
+		bytes := make([]byte, romEnd+1)
+		rom := mem.NewROM(bytes)
+
+		_, err := NewCart(rom)
+		assert.Err(t, err, false)
+	})
 }
 
 func TestReader_Title(t *testing.T) {
-	bytes := make([]byte, 0xFFFF)
+	bytes := make([]byte, romEnd+1)
 	copyAt([]byte{0x54, 0x45, 0x53, 0x54}, bytes, titleStart)
 	rom := mem.NewROM(bytes)
 

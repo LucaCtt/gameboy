@@ -66,6 +66,16 @@ func Test_ROMCtr_GetByte(t *testing.T) {
 		assert.Err(t, err, false)
 		assert.Equal(t, got, byte(0x11))
 	})
+
+	t.Run("Invalid addr", func(t *testing.T) {
+		bytes := make([]byte, romEnd+1)
+
+		rom := mem.NewROM(bytes)
+		ctr, _ := NewROMCtr(rom)
+
+		_, err := ctr.GetByte(romEnd + 1)
+		assert.Err(t, err, true)
+	})
 }
 
 func Test_ROMCtr_SetByte(t *testing.T) {
@@ -93,6 +103,15 @@ func Test_ROMCtr_SetByte(t *testing.T) {
 
 		got, _ := ctr.GetByte(romEnd)
 		assert.Equal(t, got, byte(0x00))
+	})
+
+	t.Run("Invalid address", func(t *testing.T) {
+		bytes := make([]byte, romEnd+1)
+		rom := mem.NewROM(bytes)
+		ctr, _ := NewROMCtr(rom)
+
+		err := ctr.SetByte(romEnd+1, 0x11)
+		assert.Err(t, err, true)
 	})
 }
 
