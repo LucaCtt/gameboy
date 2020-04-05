@@ -1,7 +1,7 @@
 package cart
 
 import (
-	"github.com/lucactt/gameboy/gameboy/mem"
+	"github.com/lucactt/gameboy/mem"
 	"github.com/lucactt/gameboy/util/errors"
 )
 

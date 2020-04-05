@@ -3,7 +3,7 @@ package cart
 import (
 	"testing"
 
-	"github.com/lucactt/gameboy/gameboy/mem"
+	"github.com/lucactt/gameboy/mem"
 	"github.com/lucactt/gameboy/util/assert"
 )
 

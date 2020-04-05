@@ -24,7 +24,7 @@ func TestRegister_HiLo(t *testing.T) {
 	r := register{r: 0x0100}
 	got := r.HiLo()
 
-	assert.Equal(t, got, (0x0100))
+	assert.Equal(t, got, uint16(0x0100))
 }
 
 func TestRegister_SetLo(t *testing.T) {

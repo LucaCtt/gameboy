@@ -1,6 +1,6 @@
 package cart
 
-import "github.com/lucactt/gameboy/gameboy/mem"
+import "github.com/lucactt/gameboy/mem"
 
 type MBC1 struct {
 	rom                *mem.ROM
