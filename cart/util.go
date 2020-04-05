@@ -45,3 +45,27 @@ func getBytes(mem mem.Mem, start, end uint16) []byte {
 func getString(mem mem.Mem, start, end uint16) string {
 	return string(bytes.Trim(getBytes(mem, start, end), "\x00"))
 }
+
+// romBanks reads the number of ROM banks. Each bank is 32KB.
+func romBanks(rom *mem.ROM) int {
+	return 2 * (int(getByte(rom, romSize)) ^ 2)
+}
+
+func ramBanks(rom *mem.ROM) int {
+	switch getByte(rom, ramSize) {
+	case 0x02:
+		return 1
+	case 0x03:
+		return 4
+	case 0x04:
+		return 16
+	case 0x05:
+		return 8
+	default:
+		return 0
+	}
+}
+
+func hasRAM(rom *mem.ROM) bool {
+	return ramBanks(rom) != 0
+}

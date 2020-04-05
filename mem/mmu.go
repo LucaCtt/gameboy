@@ -90,10 +90,6 @@ func (m *MMU) SetByte(addr uint16, value byte) error {
 // Accepts checks if any of the underlying memories
 // accept the given address.
 func (m *MMU) Accepts(addr uint16) bool {
-	if addr < 0 {
-		return false
-	}
-
 	for _, s := range m.spaces {
 		if s.Accepts(addr) {
 			return true

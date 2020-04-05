@@ -64,3 +64,7 @@ func (ctr *MBC1) ramAddr(addr uint16) uint16 {
 
 	return uint16(ctr.ramBank%ctr.ramBanks)*0x2000 + (addr - 0xa000)
 }
+
+func isRAM(addr uint16) bool {
+	return addr >= 0xA000 && addr < 0xC000
+}
