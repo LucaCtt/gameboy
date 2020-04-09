@@ -1,4 +1,4 @@
-# Gameboy emulator
+# Gameboy emulator [![Codacy Badge](https://api.codacy.com/project/badge/Grade/1f287cb432114b6791b2204aa9083380)](https://www.codacy.com/manual/LucaCtt/gameboy?utm_source=github.com&utm_medium=referral&utm_content=LucaCtt/gameboy&utm_campaign=Badge_Grade)
 
 This is a Nintendo GameBoy emulator written in go.
 
