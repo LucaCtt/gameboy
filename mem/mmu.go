@@ -1,7 +1,11 @@
 // Package mem implements various memory types.
 package mem
 
-import "github.com/lucactt/gameboy/util/errors"
+import (
+	"fmt"
+
+	"github.com/lucactt/gameboy/util/errors"
+)
 
 // Mem represents a general purpose memory from which bytes
 // can be read and written.
@@ -10,6 +14,11 @@ import "github.com/lucactt/gameboy/util/errors"
 //
 // When an address is not within the memory addresses range,
 // an error must be returned.
+//
+// While not necessary, any code that uses this interface should
+// check that Accepts(addr) returns true before getting or setting that address.
+// If Accepts(addr) returns true, but getting or setting that address returns an exception,
+// the calling code should panic, as that indicates a dev error (please report it).
 type Mem interface {
 	// GetByte returns the byte at the given address, or an error if
 	// the mem doesn't accept the address.
@@ -61,13 +70,14 @@ func (m *MMU) GetByte(addr uint16) (byte, error) {
 		if s.Accepts(addr) {
 			res, err := s.GetByte(addr)
 			if err != nil {
-				return 0, errors.E("get byte from memory failed", err, errors.Memory)
+				// If this happens it's because of a development error, so panic is ok.
+				panic(errors.E(fmt.Sprintf("mem accepts %d, but GetByte returned error", addr), err))
 			}
 			return res, nil
 		}
 	}
 
-	return 0, errors.E("no memory space accepts addr", errors.CodeOutOfRange, errors.Memory)
+	return 0, errors.E("no memory space accepts addr", errors.CodeOutOfRange, errors.Mem)
 }
 
 // SetByte sets the byte at the given address.
@@ -78,13 +88,13 @@ func (m *MMU) SetByte(addr uint16, value byte) error {
 		if s.Accepts(addr) {
 			err := s.SetByte(addr, value)
 			if err != nil {
-				return errors.E("set byte to memory failed", err, errors.Memory)
+				panic(errors.E(fmt.Sprintf("mem accepts %d, but SetByte returned error", addr), err))
 			}
 			return nil
 		}
 	}
 
-	return errors.E("no memory space accepts addr", errors.CodeOutOfRange, errors.Memory)
+	return errors.E("no memory space accepts addr", errors.CodeOutOfRange, errors.Mem)
 }
 
 // Accepts checks if any of the underlying memories

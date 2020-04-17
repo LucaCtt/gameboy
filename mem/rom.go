@@ -17,27 +17,25 @@ func NewROM(content []byte) *ROM {
 }
 
 // GetByte returns the byte at the given address.
-// If the address is outside the memory, an
-// error will be returned.
+// If the address is outside the memory it returns an error.
 func (r *ROM) GetByte(addr uint16) (byte, error) {
 	if !r.Accepts(addr) {
 		return 0, errors.E(
 			fmt.Sprintf("address %v outside of space", addr),
 			errors.CodeOutOfRange,
-			errors.Memory)
+			errors.Mem)
 	}
 	return r.rom[addr], nil
 }
 
 // SetByte has no effect if the address
-// is inside the memory.
-// Otherwise it returns an error.
+// is inside the memory, otherwise it returns an error.
 func (r *ROM) SetByte(addr uint16, value byte) error {
 	if !r.Accepts(addr) {
 		return errors.E(
 			fmt.Sprintf("address %v outside of space", addr),
 			errors.CodeOutOfRange,
-			errors.Memory)
+			errors.Mem)
 	}
 	return nil
 }

@@ -8,15 +8,28 @@ import (
 )
 
 func TestError_Error(t *testing.T) {
-	e := &Error{
-		Message:   "test",
-		Err:       fmt.Errorf("error"),
-		Code:      CodeUnexpected,
-		Component: Memory,
-	}
-	want := fmt.Sprintf("%s: %v", e.Message, e.Err)
+	t.Run("No wrapper err", func(t *testing.T) {
+		e := &Error{
+			Message:   "test",
+			Err:       nil,
+			Code:      CodeUnexpected,
+			Component: Mem,
+		}
 
-	assert.Equal(t, e.Error(), want)
+		assert.Equal(t, e.Error(), "test")
+	})
+
+	t.Run("Wrapped err", func(t *testing.T) {
+		e := &Error{
+			Message:   "test",
+			Err:       fmt.Errorf("error"),
+			Code:      CodeUnexpected,
+			Component: Mem,
+		}
+		want := fmt.Sprintf("%s: %v", e.Message, e.Err)
+
+		assert.Equal(t, e.Error(), want)
+	})
 }
 
 func TestError_Unwrap(t *testing.T) {
@@ -24,7 +37,7 @@ func TestError_Unwrap(t *testing.T) {
 		Message:   "test",
 		Err:       fmt.Errorf("error"),
 		Code:      CodeUnexpected,
-		Component: Memory,
+		Component: Mem,
 	}
 	want := e.Err
 

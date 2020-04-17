@@ -5,7 +5,10 @@ import (
 	"net/http"
 )
 
+// ErrCode identifies the error with a code.
 type ErrCode int
+
+// ErrComponent identifies the component where the error happened.
 type ErrComponent string
 
 // HTTP status codes used to identify errors.
@@ -16,8 +19,8 @@ const (
 
 // Components where errors can be originated from.
 const (
-	Memory    ErrComponent = "memory"
-	Cartridge ErrComponent = "cartridge"
+	Mem  ErrComponent = "memory"
+	Cart ErrComponent = "cartridge"
 )
 
 // Error is a wrapper for an error value with added context.

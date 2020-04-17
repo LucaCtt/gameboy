@@ -42,7 +42,7 @@ type MBC1 struct {
 // between 0xA000 and 0xBFFF.
 func NewMBC1(rom *mem.ROM, ram *mem.RAM) (*MBC1, error) {
 	if !rom.Accepts(mbc1SwitchROMEnd) {
-		return nil, errors.E("ROM size insufficient", errors.Cartridge)
+		return nil, errors.E("rom size insufficient", errors.Cart)
 	}
 
 	if ram == nil {
@@ -50,7 +50,7 @@ func NewMBC1(rom *mem.ROM, ram *mem.RAM) (*MBC1, error) {
 	}
 
 	if !ram.Accepts(mbc1SwitchRAMEnd - mbc1SwitchRAMStart) {
-		return nil, errors.E("RAM size insufficient", errors.Cartridge)
+		return nil, errors.E("ram size insufficient", errors.Cart)
 	}
 
 	mmu := &mem.MMU{}
@@ -64,7 +64,7 @@ func NewMBC1(rom *mem.ROM, ram *mem.RAM) (*MBC1, error) {
 // can be read from the ROM or from the RAM, if it exists.
 func (ctr *MBC1) GetByte(addr uint16) (byte, error) {
 	if !ctr.Accepts(addr) {
-		return 0, errors.E(fmt.Sprintf("MBC1 controller does not accepts addr %d", addr))
+		return 0, errors.E(fmt.Sprintf("mbc1 controller does not accept addr %d", addr))
 	}
 
 	if addr >= mbc1SwitchRAMStart && addr <= mbc1SwitchRAMEnd && !ctr.isRAMEnabled {
@@ -73,7 +73,7 @@ func (ctr *MBC1) GetByte(addr uint16) (byte, error) {
 
 	byte, err := ctr.mem.GetByte(addr)
 	if err != nil {
-		panic(err)
+		panic(errors.E(fmt.Sprintf("mbc1 mem accepts addr %d, but GetByte returns err", addr), err))
 	}
 
 	return byte, nil
@@ -83,7 +83,7 @@ func (ctr *MBC1) GetByte(addr uint16) (byte, error) {
 // or sets the byte to the given value if it points to RAM.
 func (ctr *MBC1) SetByte(addr uint16, value byte) error {
 	if !ctr.Accepts(addr) {
-		return errors.E(fmt.Sprintf("MBC1 controller does not accepts addr %d", addr))
+		return errors.E(fmt.Sprintf("MBC1 controller does not accept addr %d", addr))
 	}
 
 	if addr >= mbc1RAMEnableStart && addr <= mbc1RAMEnableEnd {
@@ -92,7 +92,7 @@ func (ctr *MBC1) SetByte(addr uint16, value byte) error {
 
 	err := ctr.mem.SetByte(addr, value)
 	if err != nil {
-		panic(err)
+		panic(errors.E(fmt.Sprintf("mbc1 mem accepts addr %d, but SetByte returns err", addr), err))
 	}
 
 	return nil

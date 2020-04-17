@@ -9,12 +9,12 @@ import (
 
 func Test_E(t *testing.T) {
 	t.Run("valid args", func(t *testing.T) {
-		got := E("test", fmt.Errorf("test"), CodeUnexpected, Memory)
+		got := E("test", fmt.Errorf("test"), CodeUnexpected, Mem)
 		want := &Error{
 			Message:   "test",
 			Err:       fmt.Errorf("test"),
 			Code:      CodeUnexpected,
-			Component: Memory,
+			Component: Mem,
 		}
 
 		assert.Equal(t, got, want)

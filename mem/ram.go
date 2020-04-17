@@ -20,26 +20,26 @@ func NewRAM(len uint16) *RAM {
 
 // GetByte returns the byte at the given address.
 // If the address is outside the memory,
-// it will return an error.
+// it returns an error.
 func (r *RAM) GetByte(addr uint16) (byte, error) {
 	if !r.Accepts(addr) {
 		return 0, errors.E(
 			fmt.Sprintf("address %v outside of space", addr),
 			errors.CodeOutOfRange,
-			errors.Memory)
+			errors.Mem)
 	}
 	return r.ram[addr], nil
 }
 
 // SetByte sets the byte at the given address to the
 // given value. Is the address is outside the memory,
-// it will return an error.
+// it returns an error.
 func (r *RAM) SetByte(addr uint16, value byte) error {
 	if !r.Accepts(addr) {
 		return errors.E(
 			fmt.Sprintf("address %v outside of space", addr),
 			errors.CodeOutOfRange,
-			errors.Memory)
+			errors.Mem)
 	}
 	r.ram[addr] = value
 	return nil

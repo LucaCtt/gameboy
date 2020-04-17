@@ -14,7 +14,7 @@ func getByte(mem mem.Mem, addr uint16) byte {
 	b, err := mem.GetByte(addr)
 
 	if err != nil {
-		panic(errors.E(fmt.Sprintf("read address %d failed", addr), err, errors.Cartridge))
+		panic(errors.E(fmt.Sprintf("read address %d failed", addr), err, errors.Cart))
 	}
 
 	return b
@@ -26,7 +26,7 @@ func setByte(mem mem.Mem, addr uint16, value byte) {
 	err := mem.SetByte(addr, value)
 
 	if err != nil {
-		panic(errors.E(fmt.Sprintf("write to address %d failed", addr), err, errors.Cartridge))
+		panic(errors.E(fmt.Sprintf("write to address %d failed", addr), err, errors.Cart))
 	}
 }
 

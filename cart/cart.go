@@ -44,14 +44,14 @@ type Cart struct {
 // It will return an error if the ROM is an invalid or unsupported cartridge.
 func NewCart(rom *mem.ROM) (*Cart, error) {
 	if !rom.Accepts(headerEnd) {
-		return nil, errors.E("rom size insufficient to contain header", errors.Cartridge)
+		return nil, errors.E("rom size insufficient to contain header", errors.Cart)
 	}
 
 	title := getString(rom, titleStart, titleEnd)
 
 	ctr, err := controller(rom)
 	if err != nil {
-		return nil, errors.E("get controller failed", err, errors.Cartridge)
+		return nil, errors.E("create controller failed", err, errors.Cart)
 	}
 
 	return &Cart{title, ctr}, nil
@@ -68,7 +68,7 @@ func (c *Cart) Title() string {
 func (c *Cart) GetByte(addr uint16) (byte, error) {
 	b, err := c.ctr.GetByte(addr)
 	if err != nil {
-		return 0, errors.E("get byte from cartridge failed", err, errors.Cartridge)
+		return 0, errors.E("get byte from cartridge failed", err, errors.Cart)
 	}
 	return b, nil
 }
@@ -77,7 +77,7 @@ func (c *Cart) GetByte(addr uint16) (byte, error) {
 // It will return an error if the address is invalid.
 func (c *Cart) SetByte(addr uint16, value byte) error {
 	if err := c.ctr.SetByte(addr, value); err != nil {
-		return errors.E("get byte from cartridge failed", err, errors.Cartridge)
+		return errors.E("get byte from cartridge failed", err, errors.Cart)
 	}
 	return nil
 }
@@ -92,7 +92,7 @@ func (c *Cart) Accepts(addr uint16) bool {
 func Open(p string) (*Cart, error) {
 	bytes, err := ioutil.ReadFile(p)
 	if err != nil {
-		return nil, errors.E("read cartridge file failed", err, errors.Cartridge)
+		return nil, errors.E("read cartridge file failed", err, errors.Cart)
 	}
 
 	return NewCart(mem.NewROM(bytes))
@@ -106,6 +106,6 @@ func controller(rom *mem.ROM) (Controller, error) {
 	case t == 0x00 || t == 0x08 || t == 0x09:
 		return NewROMCtr(rom)
 	default:
-		return nil, errors.E("unsupported cartridge type", errors.Cartridge)
+		return nil, errors.E("unsupported cartridge type", errors.Cart)
 	}
 }

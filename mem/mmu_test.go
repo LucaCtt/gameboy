@@ -38,19 +38,26 @@ func (m *TestMem) Accepts(addr uint16) bool {
 
 func TestMem_GetByte(t *testing.T) {
 	tests := []struct {
-		name     string
-		addr     uint16
-		spaceErr bool
-		want     byte
-		wantErr  bool
+		name      string
+		addr      uint16
+		spaceErr  bool
+		want      byte
+		wantErr   bool
+		wantPanic bool
 	}{
-		{"addr in memory", 0x0001, false, 0x11, false},
-		{"addr not in memory", 0x1000, false, 0, true},
-		{"space error", 0x0001, true, 0, true},
+		{"addr in memory", 0x0001, false, 0x11, false, false},
+		{"addr not in memory", 0x1000, false, 0, true, false},
+		{"space error", 0x0001, true, 0, false, true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			defer func() {
+				if r := recover(); (r != nil) != tt.wantPanic {
+					t.Errorf("did not want panic")
+				}
+			}()
+
 			mem := &TestMem{len: 0x1000, value: tt.want, forceErr: tt.spaceErr}
 			mmu := &MMU{}
 			mmu.AddMem(0x0000, mem)
@@ -64,19 +71,26 @@ func TestMem_GetByte(t *testing.T) {
 
 func TestMem_SetByte(t *testing.T) {
 	tests := []struct {
-		name     string
-		addr     uint16
-		spaceErr bool
-		want     byte
-		wantErr  bool
+		name      string
+		addr      uint16
+		spaceErr  bool
+		want      byte
+		wantErr   bool
+		wantPanic bool
 	}{
-		{"addr in memory", 0x0001, false, 0x11, false},
-		{"addr not in memory", 0x1000, false, 0, true},
-		{"space error", 0x0001, true, 0, true},
+		{"addr in memory", 0x0001, false, 0x11, false, false},
+		{"addr not in memory", 0x1000, false, 0, true, false},
+		{"space error", 0x0001, true, 0, true, true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			defer func() {
+				if r := recover(); (r != nil) != tt.wantPanic {
+					t.Errorf("did not want panic")
+				}
+			}()
+
 			mem := &TestMem{len: 0x1000, forceErr: tt.spaceErr}
 			mmu := &MMU{}
 			mmu.AddMem(0x0000, mem)

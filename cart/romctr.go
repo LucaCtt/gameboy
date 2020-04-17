@@ -34,11 +34,11 @@ type ROMCtr struct {
 // Note that
 func NewROMCtr(rom *mem.ROM) (*ROMCtr, error) {
 	if !rom.Accepts(romCtrROMEnd) {
-		return nil, errors.E("ROM size insufficient", errors.Cartridge)
+		return nil, errors.E("ROM size insufficient", errors.Cart)
 	}
 
 	if rom.Accepts(romCtrRAMStart) {
-		return nil, errors.E("ROM size is too big: it covers the RAM addresses", errors.Cartridge)
+		return nil, errors.E("ROM size is too big: it covers the RAM addresses", errors.Cart)
 	}
 
 	if ramBanks(rom) != 0 {
@@ -58,7 +58,7 @@ func (ctr *ROMCtr) GetByte(addr uint16) (byte, error) {
 	if !ctr.Accepts(addr) {
 		return 0, errors.E(fmt.Sprintf("ROM controller doesn't accept addr %d", addr),
 			errors.CodeOutOfRange,
-			errors.Cartridge)
+			errors.Cart)
 	}
 
 	return getByte(ctr.mem, addr), nil
@@ -70,7 +70,7 @@ func (ctr *ROMCtr) SetByte(addr uint16, value byte) error {
 	if !ctr.Accepts(addr) {
 		return errors.E(fmt.Sprintf("ROM controller doesn't accept addr %d", addr),
 			errors.CodeOutOfRange,
-			errors.Cartridge)
+			errors.Cart)
 	}
 
 	return ctr.mem.SetByte(addr, value)
