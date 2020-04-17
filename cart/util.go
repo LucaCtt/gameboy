@@ -8,15 +8,6 @@ import (
 	"github.com/lucactt/gameboy/util/errors"
 )
 
-const (
-	ramBank1 byte = 0x02
-	ramBank4 byte = 0x03
-
-	// No, this is not a mistake
-	ramBank8  byte = 0x05
-	ramBank16 byte = 0x04
-)
-
 // getByte returns the byte found at the given address
 // in the given memory. It will panic if the address is invalid.
 func getByte(mem mem.Mem, addr uint16) byte {

@@ -7,11 +7,12 @@ import (
 	"github.com/lucactt/gameboy/util/errors"
 )
 
+// Memory address ranges.
 const (
-	romStart uint16 = 0x0000
-	romEnd   uint16 = 0x7FFF
-	ramStart uint16 = 0xA000
-	ramEnd   uint16 = 0xBFFF
+	romCtrROMStart uint16 = 0x0000
+	romCtrROMEnd   uint16 = 0x7FFF
+	romCtrRAMStart uint16 = 0xA000
+	romCtrRAMEnd   uint16 = 0xBFFF
 )
 
 // ROMCtr represents a ROM controller.
@@ -30,21 +31,20 @@ type ROMCtr struct {
 // If the RAM banks flag (0x0149) in the given rom is not zero,
 // an 8MB RAM will also be created, which will accept addresses between 0xA000-0xBFFF.
 //
-// Note that the ROM cannot also accept the addresses accepted by the RAM, otherwise
-// an error will be returned.
+// Note that
 func NewROMCtr(rom *mem.ROM) (*ROMCtr, error) {
-	if !rom.Accepts(romEnd) {
+	if !rom.Accepts(romCtrROMEnd) {
 		return nil, errors.E("ROM size insufficient", errors.Cartridge)
 	}
 
-	if rom.Accepts(ramStart) {
+	if rom.Accepts(romCtrRAMStart) {
 		return nil, errors.E("ROM size is too big: it covers the RAM addresses", errors.Cartridge)
 	}
 
 	if ramBanks(rom) != 0 {
 		mmu := &mem.MMU{}
-		mmu.AddMem(romStart, rom)
-		mmu.AddMem(ramStart, mem.NewRAM(ramEnd-ramStart+1))
+		mmu.AddMem(romCtrROMStart, rom)
+		mmu.AddMem(romCtrRAMStart, mem.NewRAM(romCtrRAMEnd-romCtrRAMStart+1))
 
 		return &ROMCtr{mmu, true}, nil
 	}
@@ -79,6 +79,6 @@ func (ctr *ROMCtr) SetByte(addr uint16, value byte) error {
 // Accepts returns true if the address is included in the ROM
 // or in the RAM, false otherwise.
 func (ctr *ROMCtr) Accepts(addr uint16) bool {
-	return (addr >= romStart && addr <= romEnd) ||
-		(ctr.hasRAM && addr >= ramStart && addr <= ramEnd)
+	return (addr >= romCtrROMStart && addr <= romCtrROMEnd) ||
+		(ctr.hasRAM && addr >= romCtrRAMStart && addr <= romCtrRAMEnd)
 }
