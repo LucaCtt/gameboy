@@ -36,7 +36,7 @@ func TestNewMBC1(t *testing.T) {
 }
 
 func TestMBC1_GetByte(t *testing.T) {
-	t.Run("Unswitchable ROM bank", func(t *testing.T) {
+	t.Run("ROM bank", func(t *testing.T) {
 		bytes := make([]byte, mbc1SwitchROMEnd+1)
 		bytes[mbc1ROMBank0Start] = 0x11
 
@@ -85,8 +85,8 @@ func TestMBC1_GetByte(t *testing.T) {
 
 func TestMBC1_SetByte(t *testing.T) {
 	t.Run("Disable RAM", func(t *testing.T) {
-		bytes := make([]byte, mbc1SwitchROMEnd+1)
-		ctr, _ := NewMBC1(mem.NewROM(bytes), mem.NewRAM(minRAMSize))
+		bytes := make([]byte, 2*mbc1ROMBankSize)
+		ctr, _ := NewMBC1(mem.NewROM(bytes), mem.NewRAM(mbc1RAMBankSize))
 
 		ctr.SetByte(mbc1RAMEnableStart, 0x00)
 
@@ -96,9 +96,9 @@ func TestMBC1_SetByte(t *testing.T) {
 	})
 
 	t.Run("Enable RAM", func(t *testing.T) {
-		bytes := make([]byte, mbc1SwitchROMEnd+1)
+		bytes := make([]byte, 2*mbc1ROMBankSize)
 
-		ctr, _ := NewMBC1(mem.NewROM(bytes), mem.NewRAM(minRAMSize))
+		ctr, _ := NewMBC1(mem.NewROM(bytes), mem.NewRAM(mbc1RAMBankSize))
 		ctr.SetByte(mbc1RAMEnableStart, mbc1EnableRAMValue)
 		ctr.SetByte(mbc1SwitchRAMStart, 0x11)
 
@@ -108,6 +108,16 @@ func TestMBC1_SetByte(t *testing.T) {
 	})
 
 	t.Run("Enable ROM banking", func(t *testing.T) {
+		bytes := make([]byte, 32*int(mbc1ROMBankSize))
+		bytes[31*int(mbc1ROMBankSize-1)] = 0x11
+
+		ctr, _ := NewMBC1(mem.NewROM(bytes), mem.NewRAM(minRAMSize))
+		ctr.SetByte(mbc1ModeStart, 0x00)
+		ctr.SetByte(mbc1RAMBankStart, 0x01)
+
+		got, err := ctr.GetByte(mbc1SwitchROMStart)
+		assert.Err(t, err, false)
+		assert.Equal(t, got, byte(0x11))
 	})
 
 	t.Run("ROM banking by default", func(t *testing.T) {
@@ -122,10 +132,28 @@ func TestMBC1_SetByte(t *testing.T) {
 	t.Run("RAM banking allows access only to ROM banks 0x01-0x1F", func(t *testing.T) {
 	})
 
-	t.Run("Switch ROM bank", func(t *testing.T) {
+	t.Run("Switch lower 5 bits of ROM bank", func(t *testing.T) {
+		bytes := make([]byte, (2*mbc1SwitchROMEnd)+1)
+		bytes[2*mbc1SwitchROMStart] = 0x11
+
+		ctr, _ := NewMBC1(mem.NewROM(bytes), nil)
+		ctr.SetByte(mbc1ROMBankStart, 0x01)
+
+		got, err := ctr.GetByte(mbc1SwitchROMStart)
+		assert.Err(t, err, false)
+		assert.Equal(t, got, byte(0x11))
 	})
 
-	t.Run("Switch RAM bank", func(t *testing.T) {
+	t.Run("Lower bit of ROM bank converted to 1 if 0", func(t *testing.T) {
+		bytes := make([]byte, (2*mbc1SwitchROMEnd)+1)
+		bytes[2*mbc1SwitchROMStart] = 0x11
+
+		ctr, _ := NewMBC1(mem.NewROM(bytes), nil)
+		ctr.SetByte(mbc1ROMBankStart, 0x00)
+
+		got, err := ctr.GetByte(mbc1SwitchROMStart)
+		assert.Err(t, err, false)
+		assert.Equal(t, got, byte(0x11))
 	})
 }
 

@@ -28,8 +28,8 @@ type Mem interface {
 	// returns an error if the mem doesn't accept the address.
 	SetByte(addr uint16, value byte) error
 
-	// Accepts checks that the address is non-negative,
-	// and strictly less than the memory length.
+	// Accepts checks that the address is
+	// strictly less than the memory length.
 	Accepts(addr uint16) bool
 }
 
