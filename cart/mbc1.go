@@ -3,7 +3,6 @@ package cart
 import (
 	"fmt"
 
-	"github.com/lucactt/gameboy/mem"
 	"github.com/lucactt/gameboy/util/errors"
 )
 
@@ -24,45 +23,32 @@ const (
 	mbc1ModeStart      uint16 = 0x6000
 	mbc1ModeEnd        uint16 = 0x7FFF
 
-	mbc1EnableRAMValue byte   = 0x0A
-	mbc1ROMBankSize    uint16 = mbc1SwitchROMEnd + 1 - mbc1SwitchROMStart
-	mbc1RAMBankSize    uint16 = mbc1SwitchRAMEnd + 1 - mbc1SwitchRAMStart
+	mbc1EnableRAMValue byte = 0x0A
 )
 
 // MBC1 implements an MBC1 cartridge controller.
 type MBC1 struct {
-	mem          mem.Mem
-	romBank      byte
-	ramBank      byte
-	isROMBanking bool
+	rom          []byte
+	ram          []byte
+	romBanks     int
+	ramBanks     int
+	romBank      int
+	ramBank      int
+	isRAMBanking bool
 	isRAMEnabled bool
 }
 
-// NewMBC1 creates a new MBC1 controller from the given ROM and RAM.
+// NewMBC1 creates a new MBC1 controller from the given ROM and RAM banks number.
 //
-// The ROM must at least be big enough to contain the addresses until 0x7FFF,
-// which is the same as saying that it must have at least two banks.
-//
-// If the RAM is not nil, it must at least be big enough to accept the addresses
-// between 0xA000 and 0xBFFF.
-func NewMBC1(rom *mem.ROM, ram *mem.RAM) (*MBC1, error) {
-	if !rom.Accepts(mbc1SwitchROMEnd) {
-		return nil, errors.E("rom size insufficient", errors.Cart)
+// The ROM must be large enough to contain at least two banks.
+// The number of RAM banks can be 0.
+func NewMBC1(rom []byte, ramBanks uint) (*MBC1, error) {
+	if len(rom) < 2*romBankSize {
+		return nil, errors.E("rom size insufficient: must contain at least two banks", errors.Cart)
 	}
 
-	if ram == nil {
-		return &MBC1{mem: rom}, nil
-	}
-
-	if !ram.Accepts(mbc1SwitchRAMEnd - mbc1SwitchRAMStart) {
-		return nil, errors.E("ram size insufficient", errors.Cart)
-	}
-
-	mmu := &mem.MMU{}
-	mmu.AddMem(mbc1ROMBank0Start, rom)
-	mmu.AddMem(mbc1SwitchRAMStart, ram)
-
-	return &MBC1{mem: mmu}, nil
+	ram := make([]byte, int(ramBanks)*ramBankSize)
+	return &MBC1{rom: rom, ram: ram, romBanks: len(rom) / romBankSize, ramBanks: int(ramBanks)}, nil
 }
 
 // GetByte returns the byte at the given address, which
@@ -72,43 +58,29 @@ func (ctr *MBC1) GetByte(addr uint16) (byte, error) {
 		return 0, errors.E(fmt.Sprintf("mbc1 controller does not accept addr %d", addr))
 	}
 
-	// This switch only handles cases where the address is in the switch rom or switch ram.
-	// Every other case is handled by the default.
 	switch {
+	case addr <= mbc1ROMBank0Start:
+		return ctr.rom[addr], nil
+
 	case addr >= mbc1SwitchROMStart && addr <= mbc1SwitchROMEnd:
 		// Sum the address corresponding to the bank number to the address
 		// given as parameter.
-		relAddr := uint16(ctr.romBank)*mbc1ROMBankSize + addr
-
-		res, err := ctr.mem.GetByte(relAddr)
-		if err != nil {
-			panic(errors.E(
-				fmt.Sprintf("get rom addr %d in bank %d of mbc1 failed", relAddr, ctr.romBank),
-				err))
-		}
-		return res, nil
+		return ctr.rom[addr], nil
 
 	case addr >= mbc1SwitchRAMStart && addr <= mbc1SwitchRAMEnd:
+		if len(ctr.ram) == 0 {
+			return 0, errors.E("cannot write to ram of mbc1 controller with no ram", errors.Cart)
+		}
+
 		if !ctr.isRAMEnabled {
 			return 0xFF, nil
 		}
 
-		relAddr := uint16(ctr.ramBank)*mbc1RAMBankSize + addr
-
-		res, err := ctr.mem.GetByte(relAddr)
-		if err != nil {
-			panic(errors.E(
-				fmt.Sprintf("get ram addr %d in bank %d of mbc1 failed", relAddr, ctr.ramBank),
-				err))
-		}
-		return res, nil
+		relAddr := ctr.ramBank*ramBankSize + int(addr-mbc1SwitchRAMStart)
+		return ctr.ram[relAddr], nil
 
 	default:
-		res, err := ctr.mem.GetByte(addr)
-		if err != nil {
-			panic(errors.E(fmt.Sprintf("mbc1 mem accepts addr %d, but GetByte returns err", addr), err))
-		}
-		return res, nil
+		panic(fmt.Errorf("unhandled address %d in mbc1 controller", addr))
 	}
 }
 
@@ -130,11 +102,16 @@ func (ctr *MBC1) SetByte(addr uint16, value byte) error {
 			bank += 0x01
 		}
 
-		ctr.romBank = bank & 0x1F
-	default:
-		if err := ctr.mem.SetByte(addr, value); err != nil {
-			panic(errors.E(fmt.Sprintf("mbc1 mem accepts addr %d, but SetByte returns err", addr), err))
+		ctr.romBank = int(bank & 0x1F)
+
+	case addr >= mbc1SwitchRAMStart && addr <= mbc1SwitchRAMEnd:
+		if len(ctr.ram) == 0 {
+			return errors.E("cannot write to ram of mbc1 controller with no ram", errors.Cart)
 		}
+		ctr.ram[addr-mbc1SwitchRAMStart] = value
+
+	default:
+		panic(fmt.Errorf("unhandled address %d in mbc1 controller", addr))
 	}
 
 	return nil
@@ -143,5 +120,9 @@ func (ctr *MBC1) SetByte(addr uint16, value byte) error {
 // Accepts returns true if the address is included in the ROM
 // or in the RAM, false otherwise.
 func (ctr *MBC1) Accepts(addr uint16) bool {
-	return ctr.mem.Accepts(addr)
+	if addr >= mbc1SwitchRAMStart && addr <= mbc1SwitchRAMEnd && len(ctr.ram) == 0 {
+		return false
+	}
+
+	return addr <= mbc1SwitchRAMEnd
 }

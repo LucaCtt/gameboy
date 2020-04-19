@@ -3,7 +3,6 @@ package cart
 import (
 	"fmt"
 
-	"github.com/lucactt/gameboy/mem"
 	"github.com/lucactt/gameboy/util/errors"
 )
 
@@ -20,65 +19,55 @@ const (
 // It maps a ROM to 0x0000 to 0x7FFF, and can optionally
 // map a RAM to 0xA000-0xBFFF.
 type ROMCtr struct {
-	mem    mem.Mem
-	hasRAM bool
+	rom []byte
+	ram []byte
 }
 
-// NewROMCtr creates a new ROM controller with the given ROM.
-// The RAM must at least include addresses until 0x7FFF, otherwise
-// an error will be returned.
+// NewROMCtr creates a new ROM controller from the given ROM and RAM banks number.
 //
-// If the RAM banks flag (0x0149) in the given rom is not zero,
-// an 8MB RAM will also be created, which will accept addresses between 0xA000-0xBFFF.
-//
-// Note that
-func NewROMCtr(rom *mem.ROM) (*ROMCtr, error) {
-	if !rom.Accepts(romCtrROMEnd) {
-		return nil, errors.E("ROM size insufficient", errors.Cart)
+// The ROM must be large enough to contain at least two banks.
+// The number of RAM banks can be 0.
+func NewROMCtr(rom []byte, ramBanks int) (*ROMCtr, error) {
+	if len(rom) < 2*romBankSize {
+		return nil, errors.E("rom size insufficient: must contain at least two banks", errors.Cart)
 	}
 
-	if rom.Accepts(romCtrRAMStart) {
-		return nil, errors.E("ROM size is too big: it covers the RAM addresses", errors.Cart)
-	}
-
-	if ramBanks(rom) != 0 {
-		mmu := &mem.MMU{}
-		mmu.AddMem(romCtrROMStart, rom)
-		mmu.AddMem(romCtrRAMStart, mem.NewRAM(romCtrRAMEnd-romCtrRAMStart+1))
-
-		return &ROMCtr{mmu, true}, nil
-	}
-
-	return &ROMCtr{rom, false}, nil
+	ram := make([]byte, int(ramBanks)*ramBankSize)
+	return &ROMCtr{rom: rom, ram: ram}, nil
 }
 
 // GetByte returns the byte at the given address, which
 // can be read from the ROM or from the RAM, if it exists.
 func (ctr *ROMCtr) GetByte(addr uint16) (byte, error) {
-	if !ctr.Accepts(addr) {
-		return 0, errors.E(fmt.Sprintf("ROM controller doesn't accept addr %d", addr),
-			errors.CodeOutOfRange,
-			errors.Cart)
+	if addr <= romCtrROMEnd {
+		return ctr.rom[addr], nil
+	} else if addr >= romCtrRAMStart && addr <= romCtrRAMEnd {
+		return ctr.ram[addr-romCtrRAMStart], nil
 	}
 
-	return getByte(ctr.mem, addr), nil
+	return 0, errors.E(fmt.Sprintf("ROM controller doesn't accept addr %d", addr),
+		errors.CodeOutOfRange,
+		errors.Cart)
 }
 
 // SetByte does nothing if the addr points to the ROM,
 // or sets the byte to the given value if it points to RAM.
 func (ctr *ROMCtr) SetByte(addr uint16, value byte) error {
-	if !ctr.Accepts(addr) {
+	if addr <= romCtrROMEnd {
+		return nil
+	} else if addr >= romCtrRAMStart && addr <= romCtrRAMEnd {
+		ctr.ram[addr-romCtrRAMStart] = value
+		return nil
+	} else {
 		return errors.E(fmt.Sprintf("ROM controller doesn't accept addr %d", addr),
 			errors.CodeOutOfRange,
 			errors.Cart)
 	}
-
-	return ctr.mem.SetByte(addr, value)
 }
 
 // Accepts returns true if the address is included in the ROM
 // or in the RAM, false otherwise.
 func (ctr *ROMCtr) Accepts(addr uint16) bool {
 	return (addr >= romCtrROMStart && addr <= romCtrROMEnd) ||
-		(ctr.hasRAM && addr >= romCtrRAMStart && addr <= romCtrRAMEnd)
+		(len(ctr.ram) > 0 && addr >= romCtrRAMStart && addr <= romCtrRAMEnd)
 }

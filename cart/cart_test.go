@@ -3,33 +3,25 @@ package cart
 import (
 	"testing"
 
-	"github.com/lucactt/gameboy/mem"
 	"github.com/lucactt/gameboy/util/assert"
 )
 
 func TestNewCart(t *testing.T) {
 	t.Run("invalid rom", func(t *testing.T) {
-		bytes := make([]byte, 0)
-		rom := mem.NewROM(bytes)
-
-		_, err := NewCart(rom)
+		_, err := NewCart(make([]byte, 0))
 		assert.Err(t, err, true)
 	})
 
 	t.Run("invalid controller", func(t *testing.T) {
 		bytes := make([]byte, 0xFFFF)
 		bytes[cartType] = 0xFF
-		rom := mem.NewROM(bytes)
 
-		_, err := NewCart(rom)
+		_, err := NewCart(bytes)
 		assert.Err(t, err, true)
 	})
 
 	t.Run("valid controller", func(t *testing.T) {
-		bytes := make([]byte, romCtrROMEnd+1)
-		rom := mem.NewROM(bytes)
-
-		_, err := NewCart(rom)
+		_, err := NewCart(make([]byte, romCtrROMEnd+1))
 		assert.Err(t, err, false)
 	})
 }
@@ -37,9 +29,8 @@ func TestNewCart(t *testing.T) {
 func TestReader_Title(t *testing.T) {
 	bytes := make([]byte, romCtrROMEnd+1)
 	copyAt([]byte{0x54, 0x45, 0x53, 0x54}, bytes, titleStart)
-	rom := mem.NewROM(bytes)
 
-	r, _ := NewCart(rom)
+	r, _ := NewCart(bytes)
 	assert.Equal(t, r.Title(), "TEST")
 }
 

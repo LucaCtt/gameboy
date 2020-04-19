@@ -44,18 +44,18 @@ func getBytes(mem mem.Mem, start, end uint16) []byte {
 
 // getString builds a string using the sequence of bytes between two memory addresses,
 // trimming any 0x00 byte.
-func getString(mem mem.Mem, start, end uint16) string {
-	return string(bytes.Trim(getBytes(mem, start, end), "\x00"))
+func getString(mem []byte, start, end uint16) string {
+	return string(bytes.Trim(mem[start:end], "\x00"))
 }
 
 // romBanks reads the number of ROM banks. Each bank is 32KB.
-func romBanks(rom *mem.ROM) int {
-	return 2 * (int(getByte(rom, romSize)) ^ 2)
+func romBanks(rom []byte) int {
+	return 2 * (int(rom[romSize]) ^ 2)
 }
 
 // ramBanks reads the number of RAM banks.
-func ramBanks(rom *mem.ROM) int {
-	switch getByte(rom, ramSize) {
+func ramBanks(rom []byte) int {
+	switch rom[ramSize] {
 	case ramBank1:
 		return 1
 	case ramBank4:

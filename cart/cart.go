@@ -26,6 +26,9 @@ const (
 	ramBank4  byte = 0x03
 	ramBank16 byte = 0x04
 	ramBank8  byte = 0x05
+
+	romBankSize int = 16384
+	ramBankSize int = 8192
 )
 
 // Controller represents the memory bank controller used
@@ -42,8 +45,8 @@ type Cart struct {
 
 // NewCart creates a new cartridge from the given ROM.
 // It will return an error if the ROM is an invalid or unsupported cartridge.
-func NewCart(rom *mem.ROM) (*Cart, error) {
-	if !rom.Accepts(headerEnd) {
+func NewCart(rom []byte) (*Cart, error) {
+	if len(rom) < int(headerEnd) {
 		return nil, errors.E("rom size insufficient to contain header", errors.Cart)
 	}
 
@@ -95,16 +98,16 @@ func Open(p string) (*Cart, error) {
 		return nil, errors.E("read cartridge file failed", err, errors.Cart)
 	}
 
-	return NewCart(mem.NewROM(bytes))
+	return NewCart(bytes)
 }
 
 // controller wraps a rom with the controller specified by the cart type flag.
-func controller(rom *mem.ROM) (Controller, error) {
-	t := getByte(rom, cartType)
+func controller(rom []byte) (Controller, error) {
+	t := rom[cartType]
 
 	switch {
 	case t == 0x00 || t == 0x08 || t == 0x09:
-		return NewROMCtr(rom)
+		return NewROMCtr(rom, 0)
 	default:
 		return nil, errors.E("unsupported cartridge type", errors.Cart)
 	}
