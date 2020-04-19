@@ -15,10 +15,8 @@ import (
 // When an address is not within the memory addresses range,
 // an error must be returned.
 //
-// While not necessary, any code that uses this interface should
-// check that Accepts(addr) returns true before getting or setting that address.
-// If Accepts(addr) returns true, but getting or setting that address returns an exception,
-// the calling code should panic, as that indicates a dev error (please report it).
+// Any code that uses this interface should
+// check that Accepts(addr) returns true before getting or setting an address.
 type Mem interface {
 	// GetByte returns the byte at the given address, or an error if
 	// the mem doesn't accept the address.

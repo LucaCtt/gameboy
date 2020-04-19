@@ -6,7 +6,7 @@ import (
 	"github.com/lucactt/gameboy/util/errors"
 )
 
-// Memory address ranges
+// Memory addresses
 const (
 	mbc1ROMBank0Start  uint16 = 0x0000
 	mbc1ROMBank0End    uint16 = 0x3FFF
@@ -59,13 +59,15 @@ func (ctr *MBC1) GetByte(addr uint16) (byte, error) {
 	}
 
 	switch {
-	case addr <= mbc1ROMBank0Start:
+	case addr <= mbc1ROMBank0End:
 		return ctr.rom[addr], nil
 
-	case addr >= mbc1SwitchROMStart && addr <= mbc1SwitchROMEnd:
-		// Sum the address corresponding to the bank number to the address
-		// given as parameter.
-		return ctr.rom[addr], nil
+	case addr <= mbc1SwitchROMEnd:
+		// The address to read is equal to the selected ROM bank multiplied by the ROM bank size,
+		// to which the param address is summed. However, the ROM stored in the controller
+		// starts addressing from 0, so the start address of the ROM must be subtracted from the param address.
+		relAddr := ctr.romBank*romBankSize + int(addr-mbc1SwitchROMStart)
+		return ctr.rom[relAddr], nil
 
 	case addr >= mbc1SwitchRAMStart && addr <= mbc1SwitchRAMEnd:
 		if len(ctr.ram) == 0 {
@@ -92,10 +94,10 @@ func (ctr *MBC1) SetByte(addr uint16, value byte) error {
 	}
 
 	switch {
-	case addr >= mbc1RAMEnableStart && addr <= mbc1RAMEnableEnd:
+	case addr <= mbc1RAMEnableEnd:
 		ctr.isRAMEnabled = (value == mbc1EnableRAMValue)
 
-	case addr >= mbc1ROMBankStart && addr <= mbc1ROMBankEnd:
+	case addr <= mbc1ROMBankEnd:
 		bank := value
 
 		if bank == 0x00 || bank == 0x20 || bank == 0x40 || bank == 0x60 {
@@ -108,6 +110,7 @@ func (ctr *MBC1) SetByte(addr uint16, value byte) error {
 		if len(ctr.ram) == 0 {
 			return errors.E("cannot write to ram of mbc1 controller with no ram", errors.Cart)
 		}
+
 		ctr.ram[addr-mbc1SwitchRAMStart] = value
 
 	default:
@@ -120,9 +123,9 @@ func (ctr *MBC1) SetByte(addr uint16, value byte) error {
 // Accepts returns true if the address is included in the ROM
 // or in the RAM, false otherwise.
 func (ctr *MBC1) Accepts(addr uint16) bool {
-	if addr >= mbc1SwitchRAMStart && addr <= mbc1SwitchRAMEnd && len(ctr.ram) == 0 {
+	if len(ctr.ram) == 0 && addr >= mbc1SwitchRAMStart && addr <= mbc1SwitchRAMEnd {
 		return false
 	}
 
-	return addr <= mbc1SwitchRAMEnd
+	return (addr <= mbc1SwitchROMEnd) || (addr >= mbc1SwitchRAMStart && addr <= mbc1SwitchRAMEnd)
 }

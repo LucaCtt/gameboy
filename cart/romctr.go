@@ -39,35 +39,47 @@ func NewROMCtr(rom []byte, ramBanks int) (*ROMCtr, error) {
 // GetByte returns the byte at the given address, which
 // can be read from the ROM or from the RAM, if it exists.
 func (ctr *ROMCtr) GetByte(addr uint16) (byte, error) {
-	if addr <= romCtrROMEnd {
-		return ctr.rom[addr], nil
-	} else if addr >= romCtrRAMStart && addr <= romCtrRAMEnd {
-		return ctr.ram[addr-romCtrRAMStart], nil
+	if !ctr.Accepts(addr) {
+		return 0, errors.E(fmt.Sprintf("rom controller doesn't accept addr %d", addr), errors.Cart)
 	}
 
-	return 0, errors.E(fmt.Sprintf("ROM controller doesn't accept addr %d", addr),
-		errors.CodeOutOfRange,
-		errors.Cart)
+	switch {
+	case addr <= romCtrROMEnd:
+		return ctr.rom[addr], nil
+
+	case addr >= romCtrRAMStart && addr <= romCtrRAMEnd:
+		return ctr.ram[addr-romCtrRAMStart], nil
+
+	default:
+		panic(fmt.Errorf("unhandled address %d in rom controller", addr))
+	}
 }
 
 // SetByte does nothing if the addr points to the ROM,
 // or sets the byte to the given value if it points to RAM.
 func (ctr *ROMCtr) SetByte(addr uint16, value byte) error {
-	if addr <= romCtrROMEnd {
-		return nil
-	} else if addr >= romCtrRAMStart && addr <= romCtrRAMEnd {
-		ctr.ram[addr-romCtrRAMStart] = value
-		return nil
-	} else {
-		return errors.E(fmt.Sprintf("ROM controller doesn't accept addr %d", addr),
-			errors.CodeOutOfRange,
-			errors.Cart)
+	if !ctr.Accepts(addr) {
+		return errors.E(fmt.Sprintf("rom controller doesn't accept addr %d", addr), errors.Cart)
 	}
+
+	switch {
+
+	case addr <= romCtrROMEnd:
+		break
+
+	case addr >= romCtrRAMStart && addr <= romCtrRAMEnd:
+		ctr.ram[addr-romCtrRAMStart] = value
+
+	default:
+		panic(fmt.Errorf("unhandled address %d in rom controller", addr))
+	}
+
+	return nil
 }
 
 // Accepts returns true if the address is included in the ROM
 // or in the RAM, false otherwise.
 func (ctr *ROMCtr) Accepts(addr uint16) bool {
-	return (addr >= romCtrROMStart && addr <= romCtrROMEnd) ||
+	return (addr <= romCtrROMEnd) ||
 		(len(ctr.ram) > 0 && addr >= romCtrRAMStart && addr <= romCtrRAMEnd)
 }

@@ -21,11 +21,11 @@ func TestNewMBC1(t *testing.T) {
 func TestMBC1_GetByte(t *testing.T) {
 	t.Run("ROM bank", func(t *testing.T) {
 		bytes := make([]byte, 2*romBankSize)
-		bytes[mbc1ROMBank0Start] = 0x11
+		bytes[mbc1ROMBank0End] = 0x11
 
 		ctr, _ := NewMBC1(bytes, 0)
 
-		got, err := ctr.GetByte(mbc1ROMBank0Start)
+		got, err := ctr.GetByte(mbc1ROMBank0End)
 		assert.Err(t, err, false)
 		assert.Equal(t, got, byte(0x11))
 	})
