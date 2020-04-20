@@ -1,8 +1,6 @@
 package cart
 
 import (
-	"io/ioutil"
-
 	"github.com/lucactt/gameboy/mem"
 	"github.com/lucactt/gameboy/util/errors"
 )
@@ -52,7 +50,8 @@ func NewCart(rom []byte) (*Cart, error) {
 
 	title := getString(rom, titleStart, titleEnd)
 
-	ctr, err := controller(rom)
+	ram := make([]byte, ramBanks(rom))
+	ctr, err := controller(rom, ram)
 	if err != nil {
 		return nil, errors.E("create controller failed", err, errors.Cart)
 	}
@@ -88,27 +87,4 @@ func (c *Cart) SetByte(addr uint16, value byte) error {
 // Accepts checks if an address is included in the cartridge.
 func (c *Cart) Accepts(addr uint16) bool {
 	return c.ctr.Accepts(addr)
-}
-
-// Open reads a file and creates a new cartridge
-// with its content.
-func Open(p string) (*Cart, error) {
-	bytes, err := ioutil.ReadFile(p)
-	if err != nil {
-		return nil, errors.E("read cartridge file failed", err, errors.Cart)
-	}
-
-	return NewCart(bytes)
-}
-
-// controller wraps a rom with the controller specified by the cart type flag.
-func controller(rom []byte) (Controller, error) {
-	t := rom[cartType]
-
-	switch {
-	case t == 0x00 || t == 0x08 || t == 0x09:
-		return NewROMCtr(rom, 0)
-	default:
-		return nil, errors.E("unsupported cartridge type", errors.Cart)
-	}
 }

@@ -12,7 +12,6 @@ func TestError_Error(t *testing.T) {
 		e := &Error{
 			Message:   "test",
 			Err:       nil,
-			Code:      CodeUnexpected,
 			Component: Mem,
 		}
 
@@ -23,7 +22,6 @@ func TestError_Error(t *testing.T) {
 		e := &Error{
 			Message:   "test",
 			Err:       fmt.Errorf("error"),
-			Code:      CodeUnexpected,
 			Component: Mem,
 		}
 		want := fmt.Sprintf("%s: %v", e.Message, e.Err)
@@ -36,7 +34,6 @@ func TestError_Unwrap(t *testing.T) {
 	e := &Error{
 		Message:   "test",
 		Err:       fmt.Errorf("error"),
-		Code:      CodeUnexpected,
 		Component: Mem,
 	}
 	want := e.Err

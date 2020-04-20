@@ -2,55 +2,32 @@ package cart
 
 import (
 	"bytes"
-	"fmt"
+	"io/ioutil"
 
-	"github.com/lucactt/gameboy/mem"
 	"github.com/lucactt/gameboy/util/errors"
 )
 
-// getByte returns the byte found at the given address
-// in the given memory. It will panic if the address is invalid.
-func getByte(mem mem.Mem, addr uint16) byte {
-	b, err := mem.GetByte(addr)
-
+// Open reads a file and creates a new cartridge
+// with its content.
+func Open(p string) (*Cart, error) {
+	bytes, err := ioutil.ReadFile(p)
 	if err != nil {
-		panic(errors.E(fmt.Sprintf("read address %d failed", addr), err, errors.Cart))
+		return nil, errors.E("read cartridge file failed", err, errors.Cart)
 	}
 
-	return b
+	return NewCart(bytes)
 }
 
-// setByte sets the byte at the given address
-// in the given memory. It will panic if the address is invalid.
-func setByte(mem mem.Mem, addr uint16, value byte) {
-	err := mem.SetByte(addr, value)
+// controller wraps a rom with the controller specified by the cart type flag.
+func controller(rom []byte, ram []byte) (Controller, error) {
+	t := rom[cartType]
 
-	if err != nil {
-		panic(errors.E(fmt.Sprintf("write to address %d failed", addr), err, errors.Cart))
+	switch {
+	case t == 0x00 || t == 0x08 || t == 0x09:
+		return NewROMCtr(rom, ram)
+	default:
+		return nil, errors.E("unsupported cartridge type", errors.Cart)
 	}
-}
-
-// getBytes returns a slice of the bytes found at the given address
-// range in the given memory. It will panic if the addresses are invalid.
-func getBytes(mem mem.Mem, start, end uint16) []byte {
-	result := make([]byte, end-start+1)
-
-	for i := uint16(0); i <= end-start; i++ {
-		result[i] = getByte(mem, start+i)
-	}
-
-	return result
-}
-
-// getString builds a string using the sequence of bytes between two memory addresses,
-// trimming any 0x00 byte.
-func getString(mem []byte, start, end uint16) string {
-	return string(bytes.Trim(mem[start:end], "\x00"))
-}
-
-// romBanks reads the number of ROM banks. Each bank is 32KB.
-func romBanks(rom []byte) int {
-	return 2 * (int(rom[romSize]) ^ 2)
 }
 
 // ramBanks reads the number of RAM banks.
@@ -66,5 +43,18 @@ func ramBanks(rom []byte) int {
 		return 8
 	default:
 		return 0
+	}
+}
+
+// getString builds a string using the sequence of bytes between two memory addresses,
+// trimming any 0x00 byte.
+func getString(mem []byte, start, end uint16) string {
+	return string(bytes.Trim(mem[start:end], "\x00"))
+}
+
+// copyAt copies a source slice into a destination slice, starting at the given address.
+func copyAt(src, dst []byte, off uint16) {
+	for i, b := range src {
+		dst[off+uint16(i)] = b
 	}
 }

@@ -26,13 +26,16 @@ type ROMCtr struct {
 // NewROMCtr creates a new ROM controller from the given ROM and RAM banks number.
 //
 // The ROM must be large enough to contain at least two banks.
-// The number of RAM banks can be 0.
-func NewROMCtr(rom []byte, ramBanks int) (*ROMCtr, error) {
+// The RAM can have length == 0, but cannot be nil.
+func NewROMCtr(rom []byte, ram []byte) (*ROMCtr, error) {
+	if rom == nil || ram == nil {
+		panic(fmt.Errorf("the rom or ram are nil"))
+	}
+
 	if len(rom) < 2*romBankSize {
 		return nil, errors.E("rom size insufficient: must contain at least two banks", errors.Cart)
 	}
 
-	ram := make([]byte, int(ramBanks)*ramBankSize)
 	return &ROMCtr{rom: rom, ram: ram}, nil
 }
 

@@ -75,7 +75,7 @@ func (m *MMU) GetByte(addr uint16) (byte, error) {
 		}
 	}
 
-	return 0, errors.E("no memory space accepts addr", errors.CodeOutOfRange, errors.Mem)
+	return 0, errors.E("no memory space accepts addr", errors.Mem)
 }
 
 // SetByte sets the byte at the given address.
@@ -92,7 +92,7 @@ func (m *MMU) SetByte(addr uint16, value byte) error {
 		}
 	}
 
-	return errors.E("no memory space accepts addr", errors.CodeOutOfRange, errors.Mem)
+	return errors.E("no memory space accepts addr", errors.Mem)
 }
 
 // Accepts checks if any of the underlying memories

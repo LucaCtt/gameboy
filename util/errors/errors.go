@@ -2,7 +2,6 @@ package errors
 
 import (
 	"fmt"
-	"net/http"
 )
 
 // ErrCode identifies the error with a code.
@@ -10,12 +9,6 @@ type ErrCode int
 
 // ErrComponent identifies the component where the error happened.
 type ErrComponent string
-
-// HTTP status codes used to identify errors.
-const (
-	CodeUnexpected ErrCode = http.StatusInternalServerError
-	CodeOutOfRange ErrCode = http.StatusInsufficientStorage
-)
 
 // Components where errors can be originated from.
 const (

@@ -22,19 +22,3 @@ func E(args ...interface{}) *Error {
 
 	return e
 }
-
-// Code returns the errors code.
-// If it does not exist (which means err is not a pointer to Error) CodeUnexpected will be returned.
-// If the code exists but is 0, the wrapped error's code will be returned.
-func Code(err error) ErrCode {
-	e, ok := err.(*Error)
-	if !ok {
-		return CodeUnexpected
-	}
-
-	if e.Code != 0 {
-		return e.Code
-	}
-
-	return Code(e.Err)
-}

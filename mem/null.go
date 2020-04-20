@@ -22,10 +22,7 @@ func NewNull(len uint16) *Null {
 // is inside the memory. Otherwise it returns an error.
 func (n *Null) GetByte(addr uint16) (byte, error) {
 	if !n.Accepts(addr) {
-		return 0, errors.E(
-			fmt.Sprintf("address %v outside of space", addr),
-			errors.CodeOutOfRange,
-			errors.Mem)
+		return 0, errors.E(fmt.Sprintf("address %v outside of space", addr), errors.Mem)
 	}
 	return 0, nil
 }
@@ -34,10 +31,7 @@ func (n *Null) GetByte(addr uint16) (byte, error) {
 // is inside the memory. Otherwise it returns an error.
 func (n *Null) SetByte(addr uint16, value byte) error {
 	if !n.Accepts(addr) {
-		return errors.E(
-			fmt.Sprintf("address %v outside of space", addr),
-			errors.CodeOutOfRange,
-			errors.Mem)
+		return errors.E(fmt.Sprintf("address %v outside of space", addr), errors.Mem)
 	}
 	return nil
 }
