@@ -5,26 +5,26 @@ import (
 	"github.com/lucactt/gameboy/util/errors"
 )
 
-// Cartridge header addresses.
+// Addresses of the info contained in the header.
 const (
-	titleStart uint16 = 0x0134
-	titleEnd   uint16 = 0x0143
-	cartType   uint16 = 0x0147
-	romSize    uint16 = 0x0148
-	ramSize    uint16 = 0x0149
-	headerEnd  uint16 = 0x014F
+	titleStart   uint16 = 0x0134
+	titleEnd     uint16 = 0x0143
+	cartTypeFlag uint16 = 0x0147
+	romSizeFlag  uint16 = 0x0148
+	ramSizeFlag  uint16 = 0x0149
+	headerEnd    uint16 = 0x014F
 )
 
 // Byte values used to identify the number of RAM banks.
-// Note that this does not include the values for the ROM banks
-// because they can be calculated using the formula:
-// rom_bank = 2 * (GetByte(0x0148) ^ 2)
 const (
-	ramBank1  byte = 0x02
-	ramBank4  byte = 0x03
-	ramBank16 byte = 0x04
-	ramBank8  byte = 0x05
+	valueRAMBank1  byte = 0x02
+	valueRAMBank4  byte = 0x03
+	valueRAMBank16 byte = 0x04
+	valueRAMBank8  byte = 0x05
+)
 
+// Size of the ROM and RAM banks.
+const (
 	romBankSize int = 16384
 	ramBankSize int = 8192
 )

@@ -20,7 +20,7 @@ func Open(p string) (*Cart, error) {
 
 // controller wraps a rom with the controller specified by the cart type flag.
 func controller(rom []byte, ram []byte) (Controller, error) {
-	t := rom[cartType]
+	t := rom[cartTypeFlag]
 
 	switch {
 	case t == 0x00 || t == 0x08 || t == 0x09:
@@ -32,14 +32,14 @@ func controller(rom []byte, ram []byte) (Controller, error) {
 
 // ramBanks reads the number of RAM banks.
 func ramBanks(rom []byte) int {
-	switch rom[ramSize] {
-	case ramBank1:
+	switch rom[ramSizeFlag] {
+	case valueRAMBank1:
 		return 1
-	case ramBank4:
+	case valueRAMBank4:
 		return 4
-	case ramBank16:
+	case valueRAMBank16:
 		return 16
-	case ramBank8:
+	case valueRAMBank8:
 		return 8
 	default:
 		return 0

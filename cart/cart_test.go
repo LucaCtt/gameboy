@@ -14,7 +14,7 @@ func TestNewCart(t *testing.T) {
 
 	t.Run("invalid controller", func(t *testing.T) {
 		bytes := make([]byte, 0xFFFF)
-		bytes[cartType] = 0xFF
+		bytes[cartTypeFlag] = 0xFF
 
 		_, err := NewCart(bytes)
 		assert.Err(t, err, true)
@@ -51,7 +51,7 @@ func TestCart_GetByte(t *testing.T) {
 func TestCart_SetByte(t *testing.T) {
 	t.Run("valid addr", func(t *testing.T) {
 		bytes := make([]byte, romCtrROMEnd+1)
-		bytes[ramSize] = ramBank1
+		bytes[ramSizeFlag] = valueRAMBank1
 
 		r, _ := NewCart(bytes)
 

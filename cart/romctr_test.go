@@ -54,8 +54,6 @@ func Test_ROMCtr_GetByte(t *testing.T) {
 func Test_ROMCtr_SetByte(t *testing.T) {
 	t.Run("RAM address", func(t *testing.T) {
 		bytes := make([]byte, 2*romBankSize)
-		bytes[ramSize] = ramBank1
-
 		ctr, _ := NewROMCtr(bytes, make([]byte, ramBankSize))
 
 		err := ctr.SetByte(romCtrRAMEnd, 0x11)
@@ -86,8 +84,6 @@ func Test_ROMCtr_SetByte(t *testing.T) {
 func Test_ROMCtr_Accepts(t *testing.T) {
 	t.Run("RAM address", func(t *testing.T) {
 		bytes := make([]byte, 2*romBankSize)
-		bytes[ramSize] = ramBank1
-
 		ctr, _ := NewROMCtr(bytes, make([]byte, ramBankSize))
 
 		got := ctr.Accepts(romCtrRAMStart)
