@@ -96,8 +96,9 @@ func TestMem_SetByte(t *testing.T) {
 			mmu.AddMem(0x0000, mem)
 
 			err := mmu.SetByte(tt.addr, 0x11)
-			got, err := mmu.GetByte(tt.addr)
 			assert.Err(t, err, tt.wantErr)
+
+			got, _ := mmu.GetByte(tt.addr)
 			assert.Equal(t, got, tt.want)
 		})
 	}

@@ -31,9 +31,9 @@ func TestNull_SetByte(t *testing.T) {
 		mem := NewNull(0x1000)
 
 		err := mem.SetByte(0x0001, 0x11)
-		got, err := mem.GetByte(0x0001)
-
 		assert.Err(t, err, false)
+
+		got, _ := mem.GetByte(0x0001)
 		assert.Equal(t, got, byte(0x00))
 	})
 
@@ -41,9 +41,9 @@ func TestNull_SetByte(t *testing.T) {
 		mem := NewNull(0x1000)
 
 		err := mem.SetByte(0x1001, 0x11)
-		got, err := mem.GetByte(0x1001)
-
 		assert.Err(t, err, true)
+
+		got, _ := mem.GetByte(0x1001)
 		assert.Equal(t, got, byte(0x00))
 	})
 }
