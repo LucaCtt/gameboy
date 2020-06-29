@@ -14,6 +14,7 @@ type ErrComponent string
 const (
 	Mem  ErrComponent = "memory"
 	Cart ErrComponent = "cartridge"
+	CPU  ErrComponent = "CPU"
 )
 
 // Error is a wrapper for an error value with added context.
