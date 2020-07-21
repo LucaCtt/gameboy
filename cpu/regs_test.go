@@ -69,28 +69,25 @@ func TestReg_Set(t *testing.T) {
 	})
 }
 
-func TestRegs_Init(t *testing.T) {
-	regs := NewRegs()
-
-	assert.Equal(t, regs.AF.HiLo(), defaultAF)
-	assert.Equal(t, regs.BC.HiLo(), defaultBC)
-	assert.Equal(t, regs.DE.HiLo(), defaultDE)
-	assert.Equal(t, regs.HL.HiLo(), defaultHL)
-	assert.Equal(t, regs.SP.HiLo(), defaultSP)
-	assert.Equal(t, regs.PC.HiLo(), defaultPC)
-}
-
 func TestRegs_Z(t *testing.T) {
 	tests := []struct {
-		name string
-		want bool
+		name    string
+		initial bool
+		want    bool
 	}{
-		{"z is unset", false},
-		{"z is set", true},
+		{"z initial unset, set", false, false},
+		{"z initial unset, unset", false, false},
+		{"z initial set, set", true, true},
+		{"z initial set, unset", true, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			regs := &Regs{}
+			initial := 0
+			if tt.initial {
+				initial = 1
+			}
+
+			regs := &Regs{AF: reg{r: uint16(initial << 7)}}
 
 			regs.SetZ(tt.want)
 			got := regs.Z()
@@ -158,4 +155,57 @@ func TestRegs_C(t *testing.T) {
 			assert.Equal(t, got, tt.want)
 		})
 	}
+}
+
+func TestNewRegs(t *testing.T) {
+	t.Run("correct initial values", func(t *testing.T) {
+		regs := NewRegs()
+
+		assert.Equal(t, regs.AF.HiLo(), defaultAF)
+		assert.Equal(t, regs.BC.HiLo(), defaultBC)
+		assert.Equal(t, regs.DE.HiLo(), defaultDE)
+		assert.Equal(t, regs.HL.HiLo(), defaultHL)
+		assert.Equal(t, regs.SP.HiLo(), defaultSP)
+		assert.Equal(t, regs.PC.HiLo(), defaultPC)
+	})
+
+	t.Run("Z", func(t *testing.T) {
+		regs := NewRegs()
+
+		regs.SetZ(true)
+		assert.Equal(t, regs.Z(), true)
+
+		regs.SetZ(false)
+		assert.Equal(t, regs.Z(), false)
+	})
+
+	t.Run("N", func(t *testing.T) {
+		regs := NewRegs()
+
+		regs.SetN(true)
+		assert.Equal(t, regs.N(), true)
+
+		regs.SetN(false)
+		assert.Equal(t, regs.N(), false)
+	})
+
+	t.Run("H", func(t *testing.T) {
+		regs := NewRegs()
+
+		regs.SetH(true)
+		assert.Equal(t, regs.H(), true)
+
+		regs.SetH(false)
+		assert.Equal(t, regs.H(), false)
+	})
+
+	t.Run("C", func(t *testing.T) {
+		regs := NewRegs()
+
+		regs.SetC(true)
+		assert.Equal(t, regs.C(), true)
+
+		regs.SetC(false)
+		assert.Equal(t, regs.C(), false)
+	})
 }

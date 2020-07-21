@@ -15,6 +15,7 @@ const (
 // combined to form a 16 bit pseudo-register,
 // a common 16 bit representation is used.
 type reg struct {
+	// This is the actual value of the register.
 	r uint16
 
 	// Used only for the F registry, to prevent
@@ -84,17 +85,19 @@ func (r *Regs) Z() bool {
 
 // N returns true if the subtract flag bit is set.
 func (r *Regs) N() bool {
-	return r.AF.Lo()>>6 == 1
+	// Do a bitwise AND of the F register with the 0x40 (0b0100) mask
+	// to make sure to ignore the most significant byte.
+	return (r.AF.Lo()&0x40)>>6 == 1
 }
 
 // H returns true if the half carry flag bit is set.
 func (r *Regs) H() bool {
-	return r.AF.Lo()>>5 == 1
+	return (r.AF.Lo()&0x20)>>5 == 1
 }
 
 // C returns true if the carry flag bit is set.
 func (r *Regs) C() bool {
-	return r.AF.Lo()>>4 == 1
+	return (r.AF.Lo()&0x10)>>4 == 1
 }
 
 // SetZ sets the value of the zero flag.
@@ -119,11 +122,11 @@ func (r *Regs) SetC(value bool) {
 
 // setFlag sets the value of the bit in the given position
 // in the flag register to the given value.
-func (r *Regs) setFlag(p int, b bool) {
-	var value uint8
-	if b {
-		value = 1
+func (r *Regs) setFlag(p int, v bool) {
+	if v {
+		temp := r.AF.Lo() | (1 << p)
+		r.AF.SetLo(temp)
+	} else {
+		r.AF.SetLo(r.AF.Lo() & ^(1 << p))
 	}
-
-	r.AF.SetLo(r.AF.Lo() | value<<p)
 }
