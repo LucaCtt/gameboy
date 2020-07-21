@@ -6,7 +6,7 @@ At the moment it only support ROM and MBC1 cartridges.
 
 ## Resources
 
-- [The ultimate GameBoy talk](https://www.youtube.com/watch?v=HyzD8pNlpwI)
+- [Gameboy CPU (LR35902) instruction set](https://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html)
 - [GameBoy CPU manual](http://marc.rawer.de/Gameboy/Docs/GBCPUman.pdf)
 - [The Cycle-Accurate Game Boy Docs](https://github.com/AntonioND/giibiiadvance/tree/master/docs)
 - [coffee-gb](https://github.com/trekawek/coffee-gb)

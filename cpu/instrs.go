@@ -5,7 +5,7 @@ import (
 )
 
 // Instr is a Gameboy CPU instruction, which consists in a function
-// that returns the number of clock cycles used.
+// that returns the number of bytes read and number of clock cycles used.
 type Instr func() (int, int)
 
 // InstrSet contains both the non-prefixed and CB-prefixed instructions
@@ -86,11 +86,13 @@ func NewInstrSet(regs *Regs, mem mem.Mem) *InstrSet {
 			func() (int, int) {
 				// 0x05 - DEC B
 				original := regs.BC.Hi()
-				regs.BC.SetHi(original + 1)
+				regs.BC.SetHi(original - 1)
 
 				regs.SetZ(regs.BC.Hi() == 0)
 				regs.SetN(true)
-				regs.SetH((original & 0x0F) == 0x0F)
+				// Check that there was no carry from 4th bit.
+				// If there was set H, otherwise unset it.
+				regs.SetH((original & 0x0F) == 0x00)
 
 				return 1, 4
 			},
@@ -117,9 +119,55 @@ func NewInstrSet(regs *Regs, mem mem.Mem) *InstrSet {
 
 				// Compose the 16 bit address from the two 8 bit parts.
 				addr := uint16(getByteAtPC(2))<<8 | uint16(getByteAtPC(1))
-				setByte(addr, regs.SP.Hi())
-				setByte(addr+1, regs.SP.Lo())
+				setByte(addr, regs.SP.Lo())
+				setByte(addr+1, regs.SP.Hi())
 				return 3, 20
+			},
+			func() (int, int) {
+				// 0x09 - ADD HL,BC
+
+				original := regs.HL.HiLo()
+				res := int32(original) + int32(regs.BC.HiLo())
+				regs.HL.Set(uint16(res))
+
+				regs.SetN(false)
+				regs.SetH(int32(original&0xFFF) > (res & 0xFFF))
+				regs.SetC(res > 0xFFFF)
+
+				return 1, 8
+			},
+			func() (int, int) {
+				// 0x0A - LD A,(BC)
+				regs.AF.SetHi(getByte(regs.BC.HiLo()))
+				return 1, 8
+			},
+			func() (int, int) {
+				// 0x0B - DEC BC
+				regs.BC.Set(regs.BC.HiLo() - 1)
+				return 1, 8
+			},
+			func() (int, int) {
+				// 0x0C - INC C
+				original := regs.BC.Lo()
+				regs.BC.SetLo(original + 1)
+
+				regs.SetZ(regs.BC.Lo() == 0)
+				regs.SetN(false)
+
+				regs.SetH((original & 0x0F) == 0x0F)
+
+				return 1, 4
+			},
+			func() (int, int) {
+				// 0x0D - DEC C
+				original := regs.BC.Lo()
+				regs.BC.SetLo(original - 1)
+
+				regs.SetZ(regs.BC.Lo() == 0)
+				regs.SetN(true)
+				regs.SetH((original & 0x0F) == 0x00)
+
+				return 1, 4
 			},
 		},
 	}
