@@ -18,26 +18,7 @@ type InstrSet struct {
 // NewInstrSet creates a new instruction set that reads and writes to the
 // given registers and memory.
 func NewInstrSet(regs *Regs, mem mem.Mem) *InstrSet {
-	// Wrappers for getting and setting bytes that panic if an error is returned.
-	getByte := func(addr uint16) byte {
-		res, err := mem.GetByte(addr)
-		if err != nil {
-			panic(err)
-		}
-		return res
-	}
-	setByte := func(addr uint16, value byte) {
-		err := mem.SetByte(addr, value)
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	// Gets the byte in memory at the address obtained
-	// by adding the given offset to the value of PC.
-	getByteAtPC := func(offset uint16) byte {
-		return getByte(regs.PC.HiLo() + offset)
-	}
+	util := &instrUtil{regs, mem}
 
 	return &InstrSet{
 		NoPrefix: []Instr{
@@ -51,54 +32,30 @@ func NewInstrSet(regs *Regs, mem mem.Mem) *InstrSet {
 				// The 16 bit value to be loaded in BC is found
 				// in the two bytes at mem[PC+1] and mem[PC+2],
 				// where the former is the least significant byte.
-				regs.BC.SetLo(getByteAtPC(1))
-				regs.BC.SetHi(getByteAtPC(2))
+				regs.BC.SetLo(util.getByteAtPC(1))
+				regs.BC.SetHi(util.getByteAtPC(2))
 				return 3, 12
 			},
 			func() (int, int) {
 				// 0x02 - LD (BC),A
-				setByte(regs.BC.HiLo(), regs.AF.Hi())
+				util.setByte(regs.BC.HiLo(), regs.AF.Hi())
 				return 1, 8
 			},
 			func() (int, int) {
 				// 0x03 - INC BC
-
-				// Note that 16 bit INC/DEC instructions completely ignore flags,
-				// while 8 bit INC/DEC do not.
-				regs.BC.Set(regs.BC.HiLo() + 1)
-				return 1, 8
+				return util.inc16(regs.BC.HiLo(), func(res uint16) { regs.BC.Set(res) })
 			},
 			func() (int, int) {
 				// 0x04 - INC B
-				original := regs.BC.Hi()
-				regs.BC.SetHi(original + 1)
-
-				regs.SetZ(regs.BC.Hi() == 0)
-				regs.SetN(false)
-
-				// Check if there was a carry from the 3th bit
-				// by verifying that the original value of B
-				// had 1111 for the least significant 4 bits.
-				regs.SetH((original & 0x0F) == 0x0F)
-
-				return 1, 4
+				return util.inc8(regs.BC.Hi(), func(res byte) { regs.BC.SetHi(res) })
 			},
 			func() (int, int) {
 				// 0x05 - DEC B
-				original := regs.BC.Hi()
-				regs.BC.SetHi(original - 1)
-
-				regs.SetZ(regs.BC.Hi() == 0)
-				regs.SetN(true)
-				// Check that there was no carry from 4th bit.
-				// If there was set H, otherwise unset it.
-				regs.SetH((original & 0x0F) == 0x00)
-
-				return 1, 4
+				return util.dec8(regs.BC.Hi(), func(res byte) { regs.BC.SetHi(res) })
 			},
 			func() (int, int) {
 				// 0x06 - LD B,d8
-				regs.BC.SetHi(getByteAtPC(1))
+				regs.BC.SetHi(util.getByteAtPC(1))
 				return 2, 8
 			},
 			func() (int, int) {
@@ -118,9 +75,9 @@ func NewInstrSet(regs *Regs, mem mem.Mem) *InstrSet {
 				// 0x08 - LD (a16),SP
 
 				// Compose the 16 bit address from the two 8 bit parts.
-				addr := uint16(getByteAtPC(2))<<8 | uint16(getByteAtPC(1))
-				setByte(addr, regs.SP.Lo())
-				setByte(addr+1, regs.SP.Hi())
+				addr := uint16(util.getByteAtPC(2))<<8 | uint16(util.getByteAtPC(1))
+				util.setByte(addr, regs.SP.Lo())
+				util.setByte(addr+1, regs.SP.Hi())
 				return 3, 20
 			},
 			func() (int, int) {
@@ -138,36 +95,20 @@ func NewInstrSet(regs *Regs, mem mem.Mem) *InstrSet {
 			},
 			func() (int, int) {
 				// 0x0A - LD A,(BC)
-				regs.AF.SetHi(getByte(regs.BC.HiLo()))
+				regs.AF.SetHi(util.getByte(regs.BC.HiLo()))
 				return 1, 8
 			},
 			func() (int, int) {
 				// 0x0B - DEC BC
-				regs.BC.Set(regs.BC.HiLo() - 1)
-				return 1, 8
+				return util.dec16(regs.BC.HiLo(), func(res uint16) { regs.BC.Set(res) })
 			},
 			func() (int, int) {
 				// 0x0C - INC C
-				original := regs.BC.Lo()
-				regs.BC.SetLo(original + 1)
-
-				regs.SetZ(regs.BC.Lo() == 0)
-				regs.SetN(false)
-
-				regs.SetH((original & 0x0F) == 0x0F)
-
-				return 1, 4
+				return util.inc8(regs.BC.Lo(), func(res byte) { regs.BC.SetLo(res) })
 			},
 			func() (int, int) {
 				// 0x0D - DEC C
-				original := regs.BC.Lo()
-				regs.BC.SetLo(original - 1)
-
-				regs.SetZ(regs.BC.Lo() == 0)
-				regs.SetN(true)
-				regs.SetH((original & 0x0F) == 0x00)
-
-				return 1, 4
+				return util.dec8(regs.BC.Lo(), func(res byte) { regs.BC.SetLo(res) })
 			},
 		},
 	}
