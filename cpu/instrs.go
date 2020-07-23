@@ -61,7 +61,7 @@ func NewInstrSet(regs *Regs, mem mem.Mem) *InstrSet {
 			func() (int, int) {
 				// 0x07 - RLCA
 				original := regs.AF.Hi()
-				regs.AF.SetHi(original << 1)
+				regs.AF.SetHi((original << 1) | (original >> 7))
 
 				regs.SetZ(regs.AF.Hi() == 0)
 				regs.SetN(false)
@@ -109,6 +109,24 @@ func NewInstrSet(regs *Regs, mem mem.Mem) *InstrSet {
 			func() (int, int) {
 				// 0x0D - DEC C
 				return util.dec8(regs.BC.Lo(), func(res byte) { regs.BC.SetLo(res) })
+			},
+			func() (int, int) {
+				// 0x0E - LD C,d8
+				regs.BC.SetLo(util.getByteAtPC(1))
+				return 2, 8
+			},
+			func() (int, int) {
+				// 0x0F - RRCA
+				original := regs.AF.Hi()
+				regs.AF.SetHi((original >> 1) | (original << 7))
+
+				regs.SetZ(regs.AF.Hi() == 0)
+				regs.SetN(false)
+				regs.SetH(false)
+
+				// Put the old value of the 0th bit of A in flag C.
+				regs.SetC((original & 0x01) != 0)
+				return 1, 4
 			},
 		},
 	}

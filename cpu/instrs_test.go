@@ -207,7 +207,7 @@ func Test_NewInstrSet(t *testing.T) {
 
 				set.NoPrefix[0x07]()
 
-				assert.Equal(t, regs.AF.Hi(), byte(0xE0)) // should be 0b11100000
+				assert.Equal(t, regs.AF.Hi(), byte(0xE1)) // should be 0b11100001
 				assert.Equal(t, regs.Z(), false)
 				assert.Equal(t, regs.N(), false)
 				assert.Equal(t, regs.H(), false)
@@ -219,17 +219,16 @@ func Test_NewInstrSet(t *testing.T) {
 				ram := mem.NewRAM(0)
 				set := NewInstrSet(regs, ram)
 
-				regs.AF.SetHi(0x80) //0b10000000
+				regs.AF.SetHi(0x00)
 
 				set.NoPrefix[0x07]()
 
-				assert.Equal(t, regs.AF.Hi(), byte(0x00)) // should be 0b11100000
+				assert.Equal(t, regs.AF.Hi(), byte(0x00))
 				assert.Equal(t, regs.Z(), true)
 				assert.Equal(t, regs.N(), false)
 				assert.Equal(t, regs.H(), false)
-				assert.Equal(t, regs.C(), true)
+				assert.Equal(t, regs.C(), false)
 			})
-
 		})
 
 		t.Run("LD (d16),SP", func(t *testing.T) {
@@ -431,5 +430,72 @@ func Test_NewInstrSet(t *testing.T) {
 				assert.Equal(t, regs.H(), false)
 			})
 		})
+
+		t.Run("LD C,d8", func(t *testing.T) {
+			regs := NewRegs()
+			ram := mem.NewRAM(regs.PC.HiLo() + 2)
+			set := NewInstrSet(regs, ram)
+
+			ram.SetByte(regs.PC.HiLo()+1, 0x10)
+
+			len, cycles := set.NoPrefix[0x0E]()
+
+			assert.Equal(t, regs.BC.Lo(), byte(0x10))
+			assert.Equal(t, len, 2)
+			assert.Equal(t, cycles, 8)
+		})
+
+		t.Run("RRCA", func(t *testing.T) {
+			t.Run("msb is 0", func(t *testing.T) {
+				regs := NewRegs()
+				ram := mem.NewRAM(0)
+				set := NewInstrSet(regs, ram)
+
+				regs.AF.SetHi(0x01)
+
+				len, cycles := set.NoPrefix[0x0F]()
+
+				assert.Equal(t, regs.AF.Hi(), byte(0x80))
+				assert.Equal(t, len, 1)
+				assert.Equal(t, cycles, 4)
+				assert.Equal(t, regs.Z(), false)
+				assert.Equal(t, regs.N(), false)
+				assert.Equal(t, regs.H(), false)
+				assert.Equal(t, regs.C(), true)
+			})
+
+			t.Run("msb is 1", func(t *testing.T) {
+				regs := NewRegs()
+				ram := mem.NewRAM(0)
+				set := NewInstrSet(regs, ram)
+
+				regs.AF.SetHi(0x0F) //0b00001111
+
+				set.NoPrefix[0x0F]()
+
+				assert.Equal(t, regs.AF.Hi(), byte(0x87)) // should be 0b10000111
+				assert.Equal(t, regs.Z(), false)
+				assert.Equal(t, regs.N(), false)
+				assert.Equal(t, regs.H(), false)
+				assert.Equal(t, regs.C(), true)
+			})
+
+			t.Run("result is zero", func(t *testing.T) {
+				regs := NewRegs()
+				ram := mem.NewRAM(0)
+				set := NewInstrSet(regs, ram)
+
+				regs.AF.SetHi(0x00)
+
+				set.NoPrefix[0x0F]()
+
+				assert.Equal(t, regs.AF.Hi(), byte(0x00))
+				assert.Equal(t, regs.Z(), true)
+				assert.Equal(t, regs.N(), false)
+				assert.Equal(t, regs.H(), false)
+				assert.Equal(t, regs.C(), false)
+			})
+		})
+
 	})
 }
