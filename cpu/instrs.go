@@ -43,20 +43,19 @@ func NewInstrSet(regs *Regs, mem mem.Mem) *InstrSet {
 			},
 			func() (int, int) {
 				// 0x03 - INC BC
-				return util.inc16(regs.BC.HiLo(), func(res uint16) { regs.BC.Set(res) })
+				return util.inc16(regs.BC.HiLo(), regs.BC.Set)
 			},
 			func() (int, int) {
 				// 0x04 - INC B
-				return util.inc8(regs.BC.Hi(), func(res byte) { regs.BC.SetHi(res) })
+				return util.inc8(regs.BC.Hi(), regs.BC.SetHi)
 			},
 			func() (int, int) {
 				// 0x05 - DEC B
-				return util.dec8(regs.BC.Hi(), func(res byte) { regs.BC.SetHi(res) })
+				return util.dec8(regs.BC.Hi(), regs.BC.SetHi)
 			},
 			func() (int, int) {
 				// 0x06 - LD B,d8
-				regs.BC.SetHi(util.getByteAtPC(1))
-				return 2, 8
+				return util.ld8d8(regs.BC.SetHi)
 			},
 			func() (int, int) {
 				// 0x07 - RLCA
@@ -100,20 +99,19 @@ func NewInstrSet(regs *Regs, mem mem.Mem) *InstrSet {
 			},
 			func() (int, int) {
 				// 0x0B - DEC BC
-				return util.dec16(regs.BC.HiLo(), func(res uint16) { regs.BC.Set(res) })
+				return util.dec16(regs.BC.HiLo(), regs.BC.Set)
 			},
 			func() (int, int) {
 				// 0x0C - INC C
-				return util.inc8(regs.BC.Lo(), func(res byte) { regs.BC.SetLo(res) })
+				return util.inc8(regs.BC.Lo(), regs.BC.SetLo)
 			},
 			func() (int, int) {
 				// 0x0D - DEC C
-				return util.dec8(regs.BC.Lo(), func(res byte) { regs.BC.SetLo(res) })
+				return util.dec8(regs.BC.Lo(), regs.BC.SetLo)
 			},
 			func() (int, int) {
 				// 0x0E - LD C,d8
-				regs.BC.SetLo(util.getByteAtPC(1))
-				return 2, 8
+				return util.ld8d8(regs.BC.SetLo)
 			},
 			func() (int, int) {
 				// 0x0F - RRCA
@@ -127,6 +125,9 @@ func NewInstrSet(regs *Regs, mem mem.Mem) *InstrSet {
 				// Put the old value of the 0th bit of A in flag C.
 				regs.SetC((original & 0x01) != 0)
 				return 1, 4
+			}, func() (int, int) {
+				// 0x10 - STOP
+				return 2, 4
 			},
 		},
 	}

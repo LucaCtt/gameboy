@@ -30,6 +30,7 @@ func (u *instrUtil) setByte(addr uint16, value byte) {
 	}
 }
 
+// inc8 increments an 8 bit register and also sets the correct flags.
 func (u *instrUtil) inc8(original byte, set func(byte)) (int, int) {
 	res := original + 1
 	set(res)
@@ -45,6 +46,7 @@ func (u *instrUtil) inc8(original byte, set func(byte)) (int, int) {
 	return 1, 4
 }
 
+// dec8 decrements an 8 bit register and also sets the correct flags.
 func (u *instrUtil) dec8(original byte, set func(byte)) (int, int) {
 	res := original - 1
 	set(res)
@@ -58,6 +60,7 @@ func (u *instrUtil) dec8(original byte, set func(byte)) (int, int) {
 	return 1, 4
 }
 
+// inc16 increments a 16 bit register.
 func (u *instrUtil) inc16(original uint16, set func(uint16)) (int, int) {
 	// Note that 16 bit INC/DEC instructions completely ignore flags,
 	// while 8 bit INC/DEC do not.
@@ -65,7 +68,14 @@ func (u *instrUtil) inc16(original uint16, set func(uint16)) (int, int) {
 	return 1, 8
 }
 
+// dec16 decrements a 16 bit register.
 func (u *instrUtil) dec16(original uint16, set func(uint16)) (int, int) {
 	set(original - 1)
 	return 1, 8
+}
+
+// ld8d8 puts an 8 bit immediate value into an 8 bit register.
+func (u *instrUtil) ld8d8(set func(byte)) (int, int) {
+	set(u.getByteAtPC(1))
+	return 2, 8
 }
