@@ -17,7 +17,7 @@ type InstrSet struct {
 
 // NewInstrSet creates a new instruction set that reads and writes to the
 // given registers and memory.
-func NewInstrSet(regs *Regs, mem mem.Mem) *InstrSet {
+func NewInstrSet(regs *Regs, mem mem.Mem, stateMgr *StateMgr) *InstrSet {
 	util := &instrUtil{regs, mem}
 
 	return &InstrSet{
@@ -125,9 +125,112 @@ func NewInstrSet(regs *Regs, mem mem.Mem) *InstrSet {
 				// Put the old value of the 0th bit of A in flag C.
 				regs.SetC((original & 0x01) != 0)
 				return 1, 4
-			}, func() (int, int) {
+			},
+			func() (int, int) {
 				// 0x10 - STOP
+				stateMgr.SetState(Stopped)
 				return 2, 4
+			},
+			func() (int, int) {
+				// 0x11 - LD DE,d16
+
+				regs.DE.SetLo(util.getByteAtPC(1))
+				regs.DE.SetHi(util.getByteAtPC(2))
+				return 3, 12
+			},
+			func() (int, int) {
+				// 0x12 - LD (DE),A
+				util.setByte(regs.DE.HiLo(), regs.AF.Hi())
+				return 1, 8
+			},
+			func() (int, int) {
+				// 0x13 - INC DE
+				return util.inc16(regs.DE.HiLo(), regs.DE.Set)
+			},
+			func() (int, int) {
+				// 0x14 - INC D
+				return util.inc8(regs.DE.Hi(), regs.DE.SetHi)
+			},
+			func() (int, int) {
+				// 0x15 - DEC D
+				return util.dec8(regs.DE.Hi(), regs.DE.SetHi)
+			},
+			func() (int, int) {
+				// 0x16 - LD D,d8
+				return util.ld8d8(regs.DE.SetHi)
+			},
+			func() (int, int) {
+				// 0x17 - RLA
+				original := regs.AF.Hi()
+				var carry byte
+				if regs.C() {
+					carry = 1
+				}
+				regs.AF.SetHi((original << 1) + carry)
+
+				regs.SetZ(regs.AF.Hi() == 0)
+				regs.SetN(false)
+				regs.SetH(false)
+
+				// Put the old value of the 7th bit of A in flag C.
+				regs.SetC((original & (1 << 7)) != 0)
+				return 1, 4
+			},
+			func() (int, int) {
+				// 0x18 - JR r8
+				regs.PC.Set(regs.PC.HiLo() + uint16(util.getByteAtPC(1)))
+				return 2, 12
+			},
+			func() (int, int) {
+				// 0x19 - ADD HL,DE
+
+				original := regs.HL.HiLo()
+				res := int32(original) + int32(regs.DE.HiLo())
+				regs.HL.Set(uint16(res))
+
+				regs.SetN(false)
+				regs.SetH(int32(original&0xFFF) > (res & 0xFFF))
+				regs.SetC(res > 0xFFFF)
+
+				return 1, 8
+			},
+			func() (int, int) {
+				// 0x1A - LD A,(DE)
+				regs.AF.SetHi(util.getByte(regs.DE.HiLo()))
+				return 1, 8
+			},
+			func() (int, int) {
+				// 0x1B - DEC DE
+				return util.dec16(regs.DE.HiLo(), regs.DE.Set)
+			},
+			func() (int, int) {
+				// 0x1C - INC E
+				return util.inc8(regs.DE.Lo(), regs.DE.SetLo)
+			},
+			func() (int, int) {
+				// 0x1D - DEC E
+				return util.dec8(regs.DE.Lo(), regs.DE.SetLo)
+			},
+			func() (int, int) {
+				// 0x1E - LD E,d8
+				return util.ld8d8(regs.DE.SetLo)
+			},
+			func() (int, int) {
+				// 0x0F - RRA
+				original := regs.AF.Hi()
+				var carry byte
+				if regs.C() {
+					carry = 1
+				}
+				regs.AF.SetHi((original >> 1) | (carry << 7))
+
+				regs.SetZ(regs.AF.Hi() == 0)
+				regs.SetN(false)
+				regs.SetH(false)
+
+				// Put the old value of the 0th bit of A in flag C.
+				regs.SetC((original & 0x01) != 0)
+				return 1, 4
 			},
 		},
 	}

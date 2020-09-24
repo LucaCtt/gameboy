@@ -8,15 +8,19 @@ import (
 
 // CPU represents a GameBoy CPU.
 type CPU struct {
-	Regs     *Regs
 	Mem      mem.Mem
+	Regs     *Regs
+	StateMgr *StateMgr
 	InstrSet *InstrSet
 }
 
 // New creates a new CPU.
 func New(mem mem.Mem) *CPU {
 	regs := NewRegs()
-	return &CPU{Regs: regs, Mem: mem, InstrSet: NewInstrSet(regs, mem)}
+	stateMgr := NewStateMgr()
+	instrSet := NewInstrSet(regs, mem, stateMgr)
+
+	return &CPU{mem, regs, stateMgr, instrSet}
 }
 
 // Tick runs the instruction found in the memory at the address contained in PC,

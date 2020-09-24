@@ -12,7 +12,8 @@ func Test_NewInstrSet(t *testing.T) {
 		t.Run("NOP", func(t *testing.T) {
 			regs := NewRegs()
 			ram := mem.NewRAM(0)
-			set := NewInstrSet(regs, ram)
+			stateMgr := NewStateMgr()
+			set := NewInstrSet(regs, ram, stateMgr)
 
 			len, cycles := set.NoPrefix[0x00]()
 
@@ -25,7 +26,8 @@ func Test_NewInstrSet(t *testing.T) {
 		t.Run("LD BC,d16", func(t *testing.T) {
 			regs := NewRegs()
 			ram := mem.NewRAM(regs.PC.HiLo() + 3)
-			set := NewInstrSet(regs, ram)
+			stateMgr := NewStateMgr()
+			set := NewInstrSet(regs, ram, stateMgr)
 
 			ram.SetByte(regs.PC.HiLo()+1, 0x01)
 			ram.SetByte(regs.PC.HiLo()+2, 0x11)
@@ -40,7 +42,8 @@ func Test_NewInstrSet(t *testing.T) {
 		t.Run("LD (BC),A", func(t *testing.T) {
 			regs := NewRegs()
 			ram := mem.NewRAM(2)
-			set := NewInstrSet(regs, ram)
+			stateMgr := NewStateMgr()
+			set := NewInstrSet(regs, ram, stateMgr)
 
 			regs.BC.Set(0x0001)
 			ram.SetByte(regs.PC.HiLo()+1, 0x01)
@@ -56,7 +59,8 @@ func Test_NewInstrSet(t *testing.T) {
 		t.Run("INC BC", func(t *testing.T) {
 			regs := NewRegs()
 			ram := mem.NewRAM(0)
-			set := NewInstrSet(regs, ram)
+			stateMgr := NewStateMgr()
+			set := NewInstrSet(regs, ram, stateMgr)
 
 			regs.BC.Set(0x0001)
 
@@ -71,7 +75,8 @@ func Test_NewInstrSet(t *testing.T) {
 			t.Run("no carry", func(t *testing.T) {
 				regs := NewRegs()
 				ram := mem.NewRAM(0)
-				set := NewInstrSet(regs, ram)
+				stateMgr := NewStateMgr()
+				set := NewInstrSet(regs, ram, stateMgr)
 
 				regs.BC.SetHi(0x01)
 
@@ -88,7 +93,8 @@ func Test_NewInstrSet(t *testing.T) {
 			t.Run("carry", func(t *testing.T) {
 				regs := NewRegs()
 				ram := mem.NewRAM(0)
-				set := NewInstrSet(regs, ram)
+				stateMgr := NewStateMgr()
+				set := NewInstrSet(regs, ram, stateMgr)
 
 				regs.BC.SetHi(0x0F)
 
@@ -103,7 +109,8 @@ func Test_NewInstrSet(t *testing.T) {
 			t.Run("overflow", func(t *testing.T) {
 				regs := NewRegs()
 				ram := mem.NewRAM(0)
-				set := NewInstrSet(regs, ram)
+				stateMgr := NewStateMgr()
+				set := NewInstrSet(regs, ram, stateMgr)
 
 				regs.BC.SetHi(0xFF)
 
@@ -120,7 +127,8 @@ func Test_NewInstrSet(t *testing.T) {
 			t.Run("no carry", func(t *testing.T) {
 				regs := NewRegs()
 				ram := mem.NewRAM(0)
-				set := NewInstrSet(regs, ram)
+				stateMgr := NewStateMgr()
+				set := NewInstrSet(regs, ram, stateMgr)
 
 				regs.BC.SetHi(0x02)
 
@@ -137,7 +145,8 @@ func Test_NewInstrSet(t *testing.T) {
 			t.Run("carry", func(t *testing.T) {
 				regs := NewRegs()
 				ram := mem.NewRAM(0)
-				set := NewInstrSet(regs, ram)
+				stateMgr := NewStateMgr()
+				set := NewInstrSet(regs, ram, stateMgr)
 
 				regs.BC.SetHi(0x10)
 
@@ -152,7 +161,8 @@ func Test_NewInstrSet(t *testing.T) {
 			t.Run("zero", func(t *testing.T) {
 				regs := NewRegs()
 				ram := mem.NewRAM(0)
-				set := NewInstrSet(regs, ram)
+				stateMgr := NewStateMgr()
+				set := NewInstrSet(regs, ram, stateMgr)
 
 				regs.BC.SetHi(0x01)
 
@@ -168,7 +178,8 @@ func Test_NewInstrSet(t *testing.T) {
 		t.Run("LD B,d8", func(t *testing.T) {
 			regs := NewRegs()
 			ram := mem.NewRAM(regs.PC.HiLo() + 2)
-			set := NewInstrSet(regs, ram)
+			stateMgr := NewStateMgr()
+			set := NewInstrSet(regs, ram, stateMgr)
 
 			ram.SetByte(regs.PC.HiLo()+1, 0x10)
 
@@ -183,7 +194,8 @@ func Test_NewInstrSet(t *testing.T) {
 			t.Run("msb is 0", func(t *testing.T) {
 				regs := NewRegs()
 				ram := mem.NewRAM(0)
-				set := NewInstrSet(regs, ram)
+				stateMgr := NewStateMgr()
+				set := NewInstrSet(regs, ram, stateMgr)
 
 				regs.AF.SetHi(0x01)
 
@@ -201,7 +213,8 @@ func Test_NewInstrSet(t *testing.T) {
 			t.Run("msb is 1", func(t *testing.T) {
 				regs := NewRegs()
 				ram := mem.NewRAM(0)
-				set := NewInstrSet(regs, ram)
+				stateMgr := NewStateMgr()
+				set := NewInstrSet(regs, ram, stateMgr)
 
 				regs.AF.SetHi(0xF0) //0b11110000
 
@@ -217,7 +230,8 @@ func Test_NewInstrSet(t *testing.T) {
 			t.Run("result is zero", func(t *testing.T) {
 				regs := NewRegs()
 				ram := mem.NewRAM(0)
-				set := NewInstrSet(regs, ram)
+				stateMgr := NewStateMgr()
+				set := NewInstrSet(regs, ram, stateMgr)
 
 				regs.AF.SetHi(0x00)
 
@@ -234,7 +248,8 @@ func Test_NewInstrSet(t *testing.T) {
 		t.Run("LD (d16),SP", func(t *testing.T) {
 			regs := NewRegs()
 			ram := mem.NewRAM(258)
-			set := NewInstrSet(regs, ram)
+			stateMgr := NewStateMgr()
+			set := NewInstrSet(regs, ram, stateMgr)
 
 			regs.SP.Set(0x0110)
 			regs.PC.Set(0x0000)
@@ -256,7 +271,8 @@ func Test_NewInstrSet(t *testing.T) {
 			t.Run("no carry", func(t *testing.T) {
 				regs := NewRegs()
 				ram := mem.NewRAM(0)
-				set := NewInstrSet(regs, ram)
+				stateMgr := NewStateMgr()
+				set := NewInstrSet(regs, ram, stateMgr)
 
 				regs.HL.Set(0x0001)
 				regs.BC.Set(0x0001)
@@ -274,7 +290,8 @@ func Test_NewInstrSet(t *testing.T) {
 			t.Run("half carry", func(t *testing.T) {
 				regs := NewRegs()
 				ram := mem.NewRAM(0)
-				set := NewInstrSet(regs, ram)
+				stateMgr := NewStateMgr()
+				set := NewInstrSet(regs, ram, stateMgr)
 
 				regs.HL.Set(0x0FFF)
 				regs.BC.Set(0x0001)
@@ -290,7 +307,8 @@ func Test_NewInstrSet(t *testing.T) {
 			t.Run("carry", func(t *testing.T) {
 				regs := NewRegs()
 				ram := mem.NewRAM(0)
-				set := NewInstrSet(regs, ram)
+				stateMgr := NewStateMgr()
+				set := NewInstrSet(regs, ram, stateMgr)
 
 				regs.HL.Set(0xFFFF)
 				regs.BC.Set(0x0001)
@@ -307,7 +325,8 @@ func Test_NewInstrSet(t *testing.T) {
 		t.Run("LD A,(BC)", func(t *testing.T) {
 			regs := NewRegs()
 			ram := mem.NewRAM(1)
-			set := NewInstrSet(regs, ram)
+			stateMgr := NewStateMgr()
+			set := NewInstrSet(regs, ram, stateMgr)
 
 			regs.BC.Set(0x0000)
 			ram.SetByte(regs.BC.HiLo(), 0x01)
@@ -322,7 +341,8 @@ func Test_NewInstrSet(t *testing.T) {
 		t.Run("DEC BC", func(t *testing.T) {
 			regs := NewRegs()
 			ram := mem.NewRAM(0)
-			set := NewInstrSet(regs, ram)
+			stateMgr := NewStateMgr()
+			set := NewInstrSet(regs, ram, stateMgr)
 
 			regs.BC.Set(0x0001)
 
@@ -337,7 +357,8 @@ func Test_NewInstrSet(t *testing.T) {
 			t.Run("no carry", func(t *testing.T) {
 				regs := NewRegs()
 				ram := mem.NewRAM(0)
-				set := NewInstrSet(regs, ram)
+				stateMgr := NewStateMgr()
+				set := NewInstrSet(regs, ram, stateMgr)
 
 				regs.BC.SetLo(0x01)
 
@@ -354,7 +375,8 @@ func Test_NewInstrSet(t *testing.T) {
 			t.Run("carry", func(t *testing.T) {
 				regs := NewRegs()
 				ram := mem.NewRAM(0)
-				set := NewInstrSet(regs, ram)
+				stateMgr := NewStateMgr()
+				set := NewInstrSet(regs, ram, stateMgr)
 
 				regs.BC.SetLo(0x0F)
 
@@ -369,7 +391,8 @@ func Test_NewInstrSet(t *testing.T) {
 			t.Run("overflow", func(t *testing.T) {
 				regs := NewRegs()
 				ram := mem.NewRAM(0)
-				set := NewInstrSet(regs, ram)
+				stateMgr := NewStateMgr()
+				set := NewInstrSet(regs, ram, stateMgr)
 
 				regs.BC.SetLo(0xFF)
 
@@ -386,7 +409,8 @@ func Test_NewInstrSet(t *testing.T) {
 			t.Run("no carry", func(t *testing.T) {
 				regs := NewRegs()
 				ram := mem.NewRAM(0)
-				set := NewInstrSet(regs, ram)
+				stateMgr := NewStateMgr()
+				set := NewInstrSet(regs, ram, stateMgr)
 
 				regs.BC.SetLo(0x02)
 
@@ -403,7 +427,8 @@ func Test_NewInstrSet(t *testing.T) {
 			t.Run("carry", func(t *testing.T) {
 				regs := NewRegs()
 				ram := mem.NewRAM(0)
-				set := NewInstrSet(regs, ram)
+				stateMgr := NewStateMgr()
+				set := NewInstrSet(regs, ram, stateMgr)
 
 				regs.BC.SetLo(0x10)
 
@@ -418,7 +443,8 @@ func Test_NewInstrSet(t *testing.T) {
 			t.Run("zero", func(t *testing.T) {
 				regs := NewRegs()
 				ram := mem.NewRAM(0)
-				set := NewInstrSet(regs, ram)
+				stateMgr := NewStateMgr()
+				set := NewInstrSet(regs, ram, stateMgr)
 
 				regs.BC.SetLo(0x01)
 
@@ -434,7 +460,8 @@ func Test_NewInstrSet(t *testing.T) {
 		t.Run("LD C,d8", func(t *testing.T) {
 			regs := NewRegs()
 			ram := mem.NewRAM(regs.PC.HiLo() + 2)
-			set := NewInstrSet(regs, ram)
+			stateMgr := NewStateMgr()
+			set := NewInstrSet(regs, ram, stateMgr)
 
 			ram.SetByte(regs.PC.HiLo()+1, 0x10)
 
@@ -449,7 +476,8 @@ func Test_NewInstrSet(t *testing.T) {
 			t.Run("msb is 0", func(t *testing.T) {
 				regs := NewRegs()
 				ram := mem.NewRAM(0)
-				set := NewInstrSet(regs, ram)
+				stateMgr := NewStateMgr()
+				set := NewInstrSet(regs, ram, stateMgr)
 
 				regs.AF.SetHi(0x01)
 
@@ -467,7 +495,8 @@ func Test_NewInstrSet(t *testing.T) {
 			t.Run("msb is 1", func(t *testing.T) {
 				regs := NewRegs()
 				ram := mem.NewRAM(0)
-				set := NewInstrSet(regs, ram)
+				stateMgr := NewStateMgr()
+				set := NewInstrSet(regs, ram, stateMgr)
 
 				regs.AF.SetHi(0x0F) //0b00001111
 
@@ -483,7 +512,8 @@ func Test_NewInstrSet(t *testing.T) {
 			t.Run("result is zero", func(t *testing.T) {
 				regs := NewRegs()
 				ram := mem.NewRAM(0)
-				set := NewInstrSet(regs, ram)
+				stateMgr := NewStateMgr()
+				set := NewInstrSet(regs, ram, stateMgr)
 
 				regs.AF.SetHi(0x00)
 
