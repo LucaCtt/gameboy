@@ -79,3 +79,15 @@ func (u *instrUtil) ld8d8(set func(byte)) (int, int) {
 	set(u.getByteAtPC(1))
 	return 2, 8
 }
+
+// add16 puts an 8 bit immediate value into an 8 bit register.
+func (u *instrUtil) add16(original, a uint16, set func(uint16)) (int, int) {
+	res := int32(original) + int32(a)
+	set(uint16(res))
+
+	u.regs.SetN(false)
+	u.regs.SetH(int32(original&0xFFF) > (res & 0xFFF))
+	u.regs.SetC(res > 0xFFFF)
+
+	return 1, 8
+}

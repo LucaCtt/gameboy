@@ -81,16 +81,7 @@ func NewInstrSet(regs *Regs, mem mem.Mem, stateMgr *StateMgr) *InstrSet {
 			},
 			func() (int, int) {
 				// 0x09 - ADD HL,BC
-
-				original := regs.HL.HiLo()
-				res := int32(original) + int32(regs.BC.HiLo())
-				regs.HL.Set(uint16(res))
-
-				regs.SetN(false)
-				regs.SetH(int32(original&0xFFF) > (res & 0xFFF))
-				regs.SetC(res > 0xFFFF)
-
-				return 1, 8
+				return util.add16(regs.HL.HiLo(), regs.BC.HiLo(), func(res uint16) { regs.HL.Set(res) })
 			},
 			func() (int, int) {
 				// 0x0A - LD A,(BC)
@@ -183,16 +174,7 @@ func NewInstrSet(regs *Regs, mem mem.Mem, stateMgr *StateMgr) *InstrSet {
 			},
 			func() (int, int) {
 				// 0x19 - ADD HL,DE
-
-				original := regs.HL.HiLo()
-				res := int32(original) + int32(regs.DE.HiLo())
-				regs.HL.Set(uint16(res))
-
-				regs.SetN(false)
-				regs.SetH(int32(original&0xFFF) > (res & 0xFFF))
-				regs.SetC(res > 0xFFFF)
-
-				return 1, 8
+				return util.add16(regs.HL.HiLo(), regs.DE.HiLo(), func(res uint16) { regs.HL.Set(res) })
 			},
 			func() (int, int) {
 				// 0x1A - LD A,(DE)
@@ -216,7 +198,7 @@ func NewInstrSet(regs *Regs, mem mem.Mem, stateMgr *StateMgr) *InstrSet {
 				return util.ld8d8(regs.DE.SetLo)
 			},
 			func() (int, int) {
-				// 0x0F - RRA
+				// 0x1F - RRA
 				original := regs.AF.Hi()
 				var carry byte
 				if regs.C() {
@@ -230,6 +212,109 @@ func NewInstrSet(regs *Regs, mem mem.Mem, stateMgr *StateMgr) *InstrSet {
 
 				// Put the old value of the 0th bit of A in flag C.
 				regs.SetC((original & 0x01) != 0)
+				return 1, 4
+			},
+			func() (int, int) {
+				// 0x20 - JR NZ,r8
+				if !regs.Z() {
+					regs.PC.Set(regs.PC.HiLo() + uint16(util.getByteAtPC(1)))
+				}
+				return 2, 8
+			},
+			func() (int, int) {
+				// 0x21 - LD HL,d16
+
+				regs.HL.SetLo(util.getByteAtPC(1))
+				regs.HL.SetHi(util.getByteAtPC(2))
+				return 3, 12
+			},
+			func() (int, int) {
+				// 0x22 - LD (HL+),A
+				util.setByte(regs.HL.HiLo(), regs.AF.Hi())
+				util.inc16(regs.HL.HiLo(), regs.HL.Set)
+				return 1, 8
+			},
+			func() (int, int) {
+				// 0x23 - INC HL
+				return util.inc16(regs.HL.HiLo(), regs.HL.Set)
+			},
+			func() (int, int) {
+				// 0x24 - INC H
+				return util.inc8(regs.HL.Hi(), regs.HL.SetHi)
+			},
+			func() (int, int) {
+				// 0x25 - DEC H
+				return util.dec8(regs.HL.Hi(), regs.HL.SetHi)
+			},
+			func() (int, int) {
+				// 0x26 - LD H,d8
+				return util.ld8d8(regs.HL.SetHi)
+			},
+			func() (int, int) {
+				// 0x27 - DAA
+
+				// Copied and pasted from goboy cause fuck this shit
+				if !regs.N() {
+					if regs.C() || regs.AF.Hi() > 0x99 {
+						regs.AF.SetHi(regs.AF.Hi() + 0x60)
+						regs.SetC(true)
+					}
+					if regs.H() || regs.AF.Hi()&0xF > 0x9 {
+						regs.AF.SetHi(regs.AF.Hi() + 0x06)
+						regs.SetH(false)
+					}
+				} else if regs.C() && regs.H() {
+					regs.AF.SetHi(regs.AF.Hi() + 0x9A)
+					regs.SetH(false)
+				} else if regs.C() {
+					regs.AF.SetHi(regs.AF.Hi() + 0xA0)
+				} else if regs.H() {
+					regs.AF.SetHi(regs.AF.Hi() + 0xFA)
+					regs.SetH(false)
+				}
+				regs.SetZ(regs.AF.Hi() == 0)
+
+				return 1, 4
+			},
+			func() (int, int) {
+				// 0x28 - JR Z, r8
+				if regs.Z() {
+					regs.PC.Set(regs.PC.HiLo() + uint16(util.getByteAtPC(1)))
+				}
+				return 2, 8
+			},
+			func() (int, int) {
+				// 0x29 - ADD HL,HL
+				return util.add16(regs.HL.HiLo(), regs.HL.HiLo(), func(res uint16) { regs.HL.Set(res) })
+			},
+			func() (int, int) {
+				// 0x2A - LD A,(HL+)
+				regs.AF.SetHi(util.getByte(regs.HL.HiLo()))
+				util.inc16(regs.HL.HiLo(), regs.HL.Set)
+				return 1, 8
+			},
+			func() (int, int) {
+				// 0x2B - DEC HL
+				return util.dec16(regs.HL.HiLo(), regs.HL.Set)
+			},
+			func() (int, int) {
+				// 0x2C - INC L
+				return util.inc8(regs.HL.Lo(), regs.HL.SetLo)
+			},
+			func() (int, int) {
+				// 0x2D - DEC L
+				return util.dec8(regs.HL.Lo(), regs.HL.SetLo)
+			},
+			func() (int, int) {
+				// 0x2E - LD L,d8
+				return util.ld8d8(regs.HL.SetLo)
+			},
+			func() (int, int) {
+				// 0x2F - CPL
+				regs.AF.SetHi(^regs.AF.Hi())
+				regs.SetN(true)
+				regs.SetH(true)
+
 				return 1, 4
 			},
 		},
