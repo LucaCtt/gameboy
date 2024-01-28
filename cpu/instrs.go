@@ -124,7 +124,6 @@ func NewInstrSet(regs *Regs, mem mem.Mem, stateMgr *StateMgr) *InstrSet {
 			},
 			func() (int, int) {
 				// 0x11 - LD DE,d16
-
 				regs.DE.SetLo(util.getByteAtPC(1))
 				regs.DE.SetHi(util.getByteAtPC(2))
 				return 3, 12
